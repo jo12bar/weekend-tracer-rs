@@ -16,6 +16,11 @@ pub fn render_bgra(width: usize, height: usize) -> Vec<u32> {
 /// Render the scene. Outputs a vector of (r, g, b) integer triples, one for
 /// each pixel, which can range from 0 to 255.
 pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
+    let mut pb = pbr::ProgressBar::on(std::io::stderr(), (width * height) as u64);
+    pb.tick_format("▏▎▍▌▋▊▉██▉▊▋▌▍▎▏");
+    pb.show_message = true;
+    pb.message("Thread 1: ");
+
     (0..(width * height))
         .map(|screen_pos| {
             let j = height - 1 - screen_pos / width;
@@ -28,6 +33,8 @@ pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
             let ir = (255.999 * r) as u32;
             let ig = (255.999 * g) as u32;
             let ib = (255.999 * b) as u32;
+
+            pb.inc();
 
             (ir, ig, ib)
         })
