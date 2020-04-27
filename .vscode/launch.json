@@ -9,7 +9,9 @@
       "windows": {
         "program": "${workspaceFolder}/target/debug/weekend-tracer-rs.exe"
       },
-      "args": [],
+      "args": [
+        "-g"
+      ],
       "cwd": "${workspaceFolder}",
       "stopOnEntry": false,
       "preLaunchTask": "Rust: cargo build",
