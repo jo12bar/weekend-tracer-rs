@@ -1,3 +1,5 @@
+use crate::vec3;
+use crate::vec3::Vec3;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
@@ -34,13 +36,15 @@ pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
             let j = height - 1 - screen_pos / width;
             let i = screen_pos % width;
 
-            let r = (i as f64) / (width as f64);
-            let g = (j as f64) / (height as f64);
-            let b = 0.2;
+            let color = vec3!(
+                (i as f32) / (width as f32),
+                (j as f32) / (height as f32),
+                0.2
+            );
 
-            let ir = (255.999 * r) as u32;
-            let ig = (255.999 * g) as u32;
-            let ib = (255.999 * b) as u32;
+            let ir = (255.999 * color.x) as u32;
+            let ig = (255.999 * color.y) as u32;
+            let ib = (255.999 * color.z) as u32;
 
             (ir, ig, ib)
         })
