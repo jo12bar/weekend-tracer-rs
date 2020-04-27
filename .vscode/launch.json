@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(Linux) Debug",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/weekend-tracer-rs",
+      "windows": {
+        "program": "${workspaceFolder}/target/debug/weekend-tracer-rs.exe"
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+      "preLaunchTask": "Rust: cargo build",
+      "sourceLanguages": [
+        "rust"
+      ],
+      "sourceMap": {
+        "/rustc/*": "${env:HOME}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+      }
+    }
+  ]
+}
