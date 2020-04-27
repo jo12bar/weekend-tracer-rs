@@ -1,4 +1,5 @@
-use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 /// Render the scene. Outputs a vector of `u32`'s, one for each pixel:
 /// - The upper 8 bits is for the alpha channel.
@@ -17,6 +18,7 @@ pub fn render_bgra(width: usize, height: usize) -> Vec<u32> {
 
 /// Render the scene. Outputs a vector of (r, g, b) integer triples, one for
 /// each pixel, which can range from 0 to 255.
+#[allow(clippy::many_single_char_names)]
 pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
     let pb_style = ProgressStyle::default_bar()
         .template("{spinner} {msg} [{elapsed_precise}] [{bar:30.yellow/blue}] {pos}/{len}")
@@ -26,6 +28,7 @@ pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
     pb.set_style(pb_style);
 
     (0..(width * height))
+        .into_par_iter()
         .progress_with(pb)
         .map(|screen_pos| {
             let j = height - 1 - screen_pos / width;
