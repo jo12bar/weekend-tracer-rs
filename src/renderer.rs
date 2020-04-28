@@ -1,7 +1,19 @@
+use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Vec3;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
+
+/// Linearly blends white and blue depending on the height of the passed-in
+/// ray's y coordinate, *after* scaling the ray direction to unit length (so
+/// -1.0 <= y <= 1.0).
+fn ray_color(r: &Ray) -> Vec3 {
+    let unit_direction = r.direction.unit_vector();
+    let t = 0.5 * (unit_direction.y + 1.0);
+
+    // Linearly blend white and light blue.
+    ((1.0 - t) * vec3!(1.0, 1.0, 1.0)) + (t * vec3!(0.5, 0.7, 1.0))
+}
 
 /// Render the scene. Outputs a vector of `u32`'s, one for each pixel:
 /// - The upper 8 bits is for the alpha channel.
@@ -29,6 +41,12 @@ pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
     let pb = ProgressBar::new((width * height) as u64);
     pb.set_style(pb_style);
 
+    // Some reference vectors
+    let lower_left_corner = vec3!(-2.0, -1.0, -1.0);
+    let horizontal = vec3!(4.0, 0.0, 0.0);
+    let vertical = vec3!(0.0, 2.0, 0.0);
+    let origin = vec3!(0.0, 0.0, 0.0);
+
     (0..(width * height))
         .into_par_iter()
         .progress_with(pb)
@@ -36,11 +54,12 @@ pub fn render(width: usize, height: usize) -> Vec<(u32, u32, u32)> {
             let j = height - 1 - screen_pos / width;
             let i = screen_pos % width;
 
-            let color = vec3!(
-                (i as f32) / (width as f32),
-                (j as f32) / (height as f32),
-                0.2
-            );
+            let u = (i as f32) / (width as f32);
+            let v = (j as f32) / (height as f32);
+
+            let ray = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical);
+
+            let color = ray_color(&ray);
 
             let ir = (255.999 * color.x) as u32;
             let ig = (255.999 * color.y) as u32;
