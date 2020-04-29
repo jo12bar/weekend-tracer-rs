@@ -4,28 +4,39 @@ use crate::vec3::Vec3;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-fn hit_sphere(center: &Vec3, radius: f32, ray: &Ray) -> bool {
+/// For a `Ray`, **p&#x20D7;**(t) = **a** + **b&#x20D7;**t (where **a** is the
+/// origin and **b&#x20D7;** is the direction, a vector), this function returns
+/// the value t at which the `Ray` hits a sphere with some radius and a center
+/// at some point.
+fn hit_sphere(center: &Vec3, radius: f32, ray: &Ray) -> Option<f32> {
     // See the raytracing in one weekend book, chapter 5, for this formula.
     // We found a quadratic formula for hit-testing a sphere.
     let oc = ray.origin - *center;
-    let a = ray.direction.dot(&ray.direction);
-    let b = 2.0 * oc.dot(&ray.direction);
-    let c = oc.dot(&oc) - (radius * radius);
-    let discriminant = (b * b) - (4.0 * a * c);
+    let a = ray.direction.length_squared();
+    let half_b = oc.dot(&ray.direction);
+    let c = oc.length_squared() - (radius * radius);
+    let discriminant = (half_b * half_b) - (a * c);
 
-    // If the discriminant is greater than 0, then the ray successfully hit the
-    // sphere.
-    discriminant > 0.0
+    // If the discriminant is bigger than 0, then the ray hit the sphere.
+    if discriminant < 0.0 {
+        None
+    } else {
+        Some(-half_b - discriminant.sqrt() / a)
+    }
 }
 
 /// Linearly blends white and blue depending on the height of the passed-in
 /// ray's y coordinate, *after* scaling the ray direction to unit length (so
 /// -1.0 <= y <= 1.0).
-fn ray_color(r: &Ray) -> Vec3 {
-    if hit_sphere(&vec3!(0.0, 0.0, -1.0), 0.5, r) {
-        vec3!(1.0, 0.0, 0.0)
+fn ray_color(ray: &Ray) -> Vec3 {
+    if let Some(t) = hit_sphere(&vec3!(0.0, 0.0, -1.0), 0.5, ray) {
+        // `norm` is the normal vector to the point that got hit.
+        let norm = Vec3::unit_vector(&(ray.at(t) - vec3!(0.0, 0.0, -1.0)));
+
+        // Map x/y/z of the normal vector to r/g/b
+        0.5 * vec3!(norm.x + 1.0, norm.y + 1.0, norm.z + 1.0)
     } else {
-        let unit_direction = r.direction.unit_vector();
+        let unit_direction = ray.direction.unit_vector();
         let t = 0.5 * (unit_direction.y + 1.0);
 
         // Linearly blend white and light blue.
