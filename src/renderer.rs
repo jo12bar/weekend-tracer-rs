@@ -4,15 +4,33 @@ use crate::vec3::Vec3;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
+fn hit_sphere(center: &Vec3, radius: f32, ray: &Ray) -> bool {
+    // See the raytracing in one weekend book, chapter 5, for this formula.
+    // We found a quadratic formula for hit-testing a sphere.
+    let oc = ray.origin - *center;
+    let a = ray.direction.dot(&ray.direction);
+    let b = 2.0 * oc.dot(&ray.direction);
+    let c = oc.dot(&oc) - (radius * radius);
+    let discriminant = (b * b) - (4.0 * a * c);
+
+    // If the discriminant is greater than 0, then the ray successfully hit the
+    // sphere.
+    discriminant > 0.0
+}
+
 /// Linearly blends white and blue depending on the height of the passed-in
 /// ray's y coordinate, *after* scaling the ray direction to unit length (so
 /// -1.0 <= y <= 1.0).
 fn ray_color(r: &Ray) -> Vec3 {
-    let unit_direction = r.direction.unit_vector();
-    let t = 0.5 * (unit_direction.y + 1.0);
+    if hit_sphere(&vec3!(0.0, 0.0, -1.0), 0.5, r) {
+        vec3!(1.0, 0.0, 0.0)
+    } else {
+        let unit_direction = r.direction.unit_vector();
+        let t = 0.5 * (unit_direction.y + 1.0);
 
-    // Linearly blend white and light blue.
-    ((1.0 - t) * vec3!(1.0, 1.0, 1.0)) + (t * vec3!(0.5, 0.7, 1.0))
+        // Linearly blend white and light blue.
+        ((1.0 - t) * vec3!(1.0, 1.0, 1.0)) + (t * vec3!(0.5, 0.7, 1.0))
+    }
 }
 
 /// Render the scene. Outputs a vector of `u32`'s, one for each pixel:
