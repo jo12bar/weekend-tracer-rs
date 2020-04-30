@@ -42,3 +42,13 @@ impl Hittable for World {
         rec
     }
 }
+
+/// A convenience macro for more easily building `World`'s.
+#[macro_export]
+macro_rules! create_world {
+    ($($object:expr),* $(,)?) => {
+        World::new(vec![
+            $(Arc::new($object)),*
+        ])
+    };
+}

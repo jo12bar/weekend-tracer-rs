@@ -3,13 +3,14 @@ use minifb::{Key, Window, WindowOptions};
 use std::sync::Arc;
 
 use weekend_tracer_rs::{
+    create_world,
     hittable::{sphere::Sphere, world::World},
     renderer, vec3,
     vec3::Vec3,
 };
 
-const WIDTH: usize = 1000;
-const HEIGHT: usize = 500;
+const WIDTH: usize = 200;
+const HEIGHT: usize = 100;
 
 fn gui_output(world: World) {
     let buffer = renderer::render_bgra(WIDTH, HEIGHT, world);
@@ -52,10 +53,10 @@ fn main() {
     )
     .get_matches();
 
-    let world = World::new(vec![
-        Arc::new(Sphere::new(vec3!(0.0, 0.0, -1.0), 0.5)),
-        Arc::new(Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0)),
-    ]);
+    let world = create_world!(
+        Sphere::new(vec3!(0.0, 0.0, -1.0), 0.5),
+        Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0),
+    );
 
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
