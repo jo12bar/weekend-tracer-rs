@@ -57,6 +57,8 @@ fn main() {
 
     let world = create_world!(
         Sphere::new(vec3!(0.0, 0.0, -1.0), 0.5),
+        Sphere::new(vec3!(0.75, 0.0, -1.0), 0.25),
+        Sphere::new(vec3!(-0.75, 0.0, -1.0), 0.25),
         Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0),
     );
 
