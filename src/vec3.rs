@@ -1,5 +1,6 @@
 //! Structs and methods related to operating on 3D vectors.
 
+use rand::Rng;
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
@@ -29,6 +30,70 @@ impl Vec3 {
         Vec3 { x, y, z }
     }
 
+    /// Create some random vector, where each component ranges from [0, 1).
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let a = Vec3::random(&mut rng);
+    ///
+    /// assert_eq!(
+    ///     a,
+    ///     Vec3::new(
+    ///         0.33838564,
+    ///         0.5598705,
+    ///         0.21751523,
+    ///     ),
+    /// );
+    /// ```
+    pub fn random<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        Vec3 {
+            x: rng.gen(),
+            y: rng.gen(),
+            z: rng.gen(),
+        }
+    }
+
+    /// Create some random vector, where each component ranges from [`min`, `max`).
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let a = Vec3::random_range(&mut rng, -5.0, 20.0);
+    ///
+    /// assert_eq!(
+    ///     a,
+    ///     Vec3::new(
+    ///         3.4596395,
+    ///         8.996762,
+    ///         0.43788052
+    ///     ),
+    /// );
+    pub fn random_range<R: Rng + ?Sized>(rng: &mut R, min: f32, max: f32) -> Self {
+        Vec3 {
+            x: rng.gen_range(min, max),
+            y: rng.gen_range(min, max),
+            z: rng.gen_range(min, max),
+        }
+    }
     /// Returns the length of the vector, squared.
     ///
     /// ```
