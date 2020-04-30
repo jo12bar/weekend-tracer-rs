@@ -1,12 +1,18 @@
 use clap::{clap_app, crate_version};
 use minifb::{Key, Window, WindowOptions};
-use weekend_tracer_rs::renderer;
+use std::sync::Arc;
 
-const WIDTH: usize = 200;
-const HEIGHT: usize = 100;
+use weekend_tracer_rs::{
+    hittable::{sphere::Sphere, world::World},
+    renderer, vec3,
+    vec3::Vec3,
+};
 
-fn gui_output() {
-    let buffer = renderer::render_bgra(WIDTH, HEIGHT);
+const WIDTH: usize = 1000;
+const HEIGHT: usize = 500;
+
+fn gui_output(world: World) {
+    let buffer = renderer::render_bgra(WIDTH, HEIGHT, world);
 
     let mut window = Window::new(
         "weekend-tracer-rs - ESC to exit",
@@ -24,8 +30,8 @@ fn gui_output() {
     }
 }
 
-fn ppm_output() {
-    let buffer = renderer::render(WIDTH, HEIGHT);
+fn ppm_output(world: World) {
+    let buffer = renderer::render(WIDTH, HEIGHT, world);
 
     print!("P3\n{} {}\n255\n", WIDTH, HEIGHT);
 
@@ -46,11 +52,16 @@ fn main() {
     )
     .get_matches();
 
+    let world = World::new(vec![
+        Arc::new(Sphere::new(vec3!(0.0, 0.0, -1.0), 0.5)),
+        Arc::new(Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0)),
+    ]);
+
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
     } else if matches.is_present("gui") {
-        gui_output();
+        gui_output(world);
     } else {
-        ppm_output();
+        ppm_output(world);
     }
 }
