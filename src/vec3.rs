@@ -254,13 +254,13 @@ macro_rules! vec3 {
     () => {
         Vec3::new(0.0, 0.0, 0.0)
     };
-    ($x:expr) => {
+    ($x:expr $(,)?) => {
         Vec3::new($x, 0.0, 0.0)
     };
-    ($x:expr, $y:expr) => {
+    ($x:expr, $y:expr $(,)?) => {
         Vec3::new($x, $y, 0.0)
     };
-    ($x:expr, $y:expr, $z:expr) => {
+    ($x:expr, $y:expr, $z:expr $(,)?) => {
         Vec3::new($x, $y, $z)
     };
 }
