@@ -3,6 +3,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::sync::Arc;
 
 use weekend_tracer_rs::{
+    camera::Camera,
     create_world,
     hittable::{sphere::Sphere, world::World},
     renderer, vec3,
@@ -11,9 +12,10 @@ use weekend_tracer_rs::{
 
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
+const SAMPLES_PER_PIXEL: usize = 100;
 
-fn gui_output(world: World) {
-    let buffer = renderer::render_bgra(WIDTH, HEIGHT, world);
+fn gui_output(world: World, camera: Camera) {
+    let buffer = renderer::render_bgra(WIDTH, HEIGHT, SAMPLES_PER_PIXEL, world, camera);
 
     let mut window = Window::new(
         "weekend-tracer-rs - ESC to exit",
@@ -31,8 +33,8 @@ fn gui_output(world: World) {
     }
 }
 
-fn ppm_output(world: World) {
-    let buffer = renderer::render(WIDTH, HEIGHT, world);
+fn ppm_output(world: World, camera: Camera) {
+    let buffer = renderer::render(WIDTH, HEIGHT, SAMPLES_PER_PIXEL, world, camera);
 
     print!("P3\n{} {}\n255\n", WIDTH, HEIGHT);
 
@@ -58,11 +60,13 @@ fn main() {
         Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0),
     );
 
+    let camera = Camera::default();
+
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
     } else if matches.is_present("gui") {
-        gui_output(world);
+        gui_output(world, camera);
     } else {
-        ppm_output(world);
+        ppm_output(world, camera);
     }
 }
