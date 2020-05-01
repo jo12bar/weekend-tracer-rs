@@ -310,6 +310,12 @@ impl Vec3 {
             z: self.z * inverse_length,
         }
     }
+
+    /// Reflect a vector off of a surface, based on the normal vector to that
+    /// surface.
+    pub fn reflect(&self, normal_vector: &Vec3) -> Vec3 {
+        *self - 2.0 * self.dot(normal_vector) * (*normal_vector)
+    }
 }
 
 impl Add for Vec3 {

@@ -71,28 +71,26 @@ fn main() {
     )
     .get_matches();
 
-    let mut rng = rand::thread_rng();
-
     let world = create_world!(
         Sphere::new(
             vec3!(0.0, 0.0, -1.0),
             0.5,
-            Material::lambertian(Vec3::random(&mut rng))
+            Material::lambertian(vec3!(0.7, 0.3, 0.3)),
         ),
         Sphere::new(
-            vec3!(0.75, 0.0, -1.0),
-            0.25,
-            Material::lambertian(Vec3::random(&mut rng))
+            vec3!(1.0, 0.0, -1.0),
+            0.5,
+            Material::metal(vec3!(0.8, 0.6, 0.2), 0.3),
         ),
         Sphere::new(
-            vec3!(-0.75, 0.0, -1.0),
-            0.25,
-            Material::lambertian(Vec3::random(&mut rng))
+            vec3!(-1.0, 0.0, -1.0),
+            0.5,
+            Material::metal(vec3!(0.8, 0.8, 0.8), 1.0),
         ),
         Sphere::new(
             vec3!(0.0, -100.5, -1.0),
             100.0,
-            Material::lambertian(Vec3::random(&mut rng))
+            Material::lambertian(vec3!(0.8, 0.8)),
         ),
     );
 
