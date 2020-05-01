@@ -313,6 +313,17 @@ impl Vec3 {
 
     /// Reflect a vector off of a surface, based on the normal vector to that
     /// surface.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// let a = Vec3::new(1.0, 2.0, 3.0);
+    /// let norm = Vec3::new(-2.0, 3.0, -6.0);
+    ///
+    /// assert_eq!(a.reflect(&norm), Vec3::new(-55.0, 86.0, -165.0));
+    /// ```
     pub fn reflect(&self, normal_vector: &Vec3) -> Vec3 {
         *self - 2.0 * self.dot(normal_vector) * (*normal_vector)
     }
