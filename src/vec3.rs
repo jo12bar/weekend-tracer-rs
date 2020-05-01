@@ -94,6 +94,49 @@ impl Vec3 {
             z: rng.gen_range(min, max),
         }
     }
+
+    /// Generate a random vector within the unit radius sphere.
+    ///
+    /// Works by first picking a random point in the unit cube, where x, y, and
+    /// z all range from -1 to +1. Then, the point is rejected and we try again
+    /// if the point is outside the sphere.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let a = Vec3::random_in_unit_sphere(&mut rng);
+    ///
+    /// assert!(a.length_squared() < 1.0);
+    /// assert_eq!(a.length_squared(), 0.4380054);
+    ///
+    /// assert_eq!(
+    ///     a,
+    ///     Vec3::new(
+    ///         -0.32322884,
+    ///         0.11974096,
+    ///         -0.56496954,
+    ///     ),
+    /// );
+    /// ```
+    pub fn random_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        let mut vector = Vec3::new(1.0, 1.0, 1.0);
+
+        while vector.length_squared() >= 1.0 {
+            vector = Vec3::random_range(rng, -1.0, 1.0);
+        }
+
+        vector
+    }
+
     /// Returns the length of the vector, squared.
     ///
     /// ```
