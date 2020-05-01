@@ -327,6 +327,36 @@ impl Vec3 {
     pub fn reflect(&self, normal_vector: &Vec3) -> Vec3 {
         *self - 2.0 * self.dot(normal_vector) * (*normal_vector)
     }
+
+    /// Refract a vector, given the normal vector to the surface where the
+    /// vector is being refracted.
+    ///
+    /// **_Note_** that the last parameter, `etai_over_etat`, refers to the
+    /// quantity η/η′. Here, η is the refractive index of the outside material,
+    /// and η′ is the refractive index of the material to be refracted into.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// let a = Vec3::new(1.0, 0.0, 0.0);
+    /// let norm = Vec3::new(1.0, 0.0, 2.0);
+    /// let refracted = a.refract(&norm, 0.4);
+    ///
+    /// // We have to check each component here due to floating-point rounding
+    /// // errors.
+    /// assert!(refracted.x > -0.601 && refracted.x < -0.599);
+    /// assert!(refracted.y > -0.001 && refracted.y < 0.001);
+    /// assert!(refracted.z > -2.001 && refracted.z < -1.999);
+    /// ```
+    pub fn refract(&self, normal: &Vec3, etai_over_etat: f32) -> Vec3 {
+        let cos_theta = normal.dot(&(-(*self)));
+        let r_out_parallel = etai_over_etat * ((*self) + cos_theta * (*normal));
+        let r_out_perp = -((1.0 - r_out_parallel.length_squared()).sqrt()) * (*normal);
+
+        r_out_parallel + r_out_perp
+    }
 }
 
 impl Add for Vec3 {
