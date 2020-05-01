@@ -19,18 +19,29 @@ pub struct Camera {
 impl Camera {
     /// Create a new camera.
     ///
+    /// - `lookfrom` is the point where the camera is in the world.
+    /// - `lookat` is the point that the camera is looking at.
+    /// - `vup` is the camera's upwards vector, which can change things like the
+    ///   angle the camera is rolled at.
     /// - `vfov` is the top-to-bottom field of view, in degrees.
     /// - `aspect` is the aspect ratio, width:height.
-    pub fn new(vfov: f32, aspect: f32) -> Self {
+    pub fn new(lookfrom: Vec3, lookat: Vec3, vup: Vec3, vfov: f32, aspect: f32) -> Self {
         let theta = deg_to_rad(vfov);
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
 
+        // Find an orthonormal basis {u,v,w} to describe our camera's
+        // orientation. Note that vup, v, and w are all in the same plane. Our
+        // camera will face point lookat, which is in the -w direction.
+        let w = (lookfrom - lookat).unit_vector();
+        let u = vup.cross(&w).unit_vector();
+        let v = w.cross(&u);
+
         Self {
-            lower_left_corner: vec3!(-half_width, -half_height, -1.0),
-            horizontal: vec3!(2.0 * half_width),
-            vertical: vec3!(0.0, 2.0 * half_height),
-            origin: vec3!(),
+            lower_left_corner: lookfrom - half_width * u - half_height * v - w,
+            horizontal: 2.0 * half_width * u,
+            vertical: 2.0 * half_height * v,
+            origin: lookfrom,
         }
     }
 

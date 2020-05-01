@@ -16,6 +16,8 @@ const HEIGHT: usize = 100;
 const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_REFLECTION_DEPTH: usize = 50;
 
+const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
+
 fn gui_output(world: World, camera: Camera) {
     let buffer = renderer::render_bgra(
         WIDTH,
@@ -71,22 +73,37 @@ fn main() {
     )
     .get_matches();
 
-    let radius = (std::f32::consts::PI / 4.0).cos();
-
     let world = create_world!(
+        // Middle diffuse sphere:
         Sphere::new(
-            vec3!(-radius, 0.0, -1.0),
-            radius,
-            Material::lambertian(vec3!(0.0, 0.0, 1.0))
+            vec3!(0.0, 0.0, -1.0),
+            0.5,
+            Material::lambertian(vec3!(0.1, 0.2, 0.5))
         ),
+        // Right metallic sphere:
         Sphere::new(
-            vec3!(radius, 0.0, -1.0),
-            radius,
-            Material::lambertian(vec3!(1.0, 0.0, 0.0))
+            vec3!(1.0, 0.0, -1.0),
+            0.5,
+            Material::metal(vec3!(0.8, 0.6, 0.2), 0.3)
+        ),
+        // Left hollow glass sphere:
+        Sphere::new(vec3!(-1.0, 0.0, -1.0), 0.5, Material::dielectric(1.5)),
+        Sphere::new(vec3!(-1.0, 0.0, -1.0), -0.45, Material::dielectric(1.5)),
+        // Ground:
+        Sphere::new(
+            vec3!(0.0, -100.5, -1.0),
+            100.0,
+            Material::lambertian(vec3!(0.8, 0.8))
         ),
     );
 
-    let camera = Camera::new(90.0, (WIDTH as f32) / (HEIGHT as f32));
+    let camera = Camera::new(
+        vec3!(-2.0, 2.0, 1.0),
+        vec3!(0.0, 0.0, -1.0),
+        vec3!(0.0, 1.0),
+        20.0,
+        ASPECT_RATIO,
+    );
 
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
