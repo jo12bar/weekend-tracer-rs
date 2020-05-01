@@ -175,6 +175,51 @@ impl Vec3 {
         }
     }
 
+    /// Generate a random vector contained within the unit hemisphere
+    /// surrounding a given normal vector.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let normal_vec = Vec3::new(1.0, 2.0, -3.0);
+    /// let a = Vec3::random_in_hemisphere(&mut rng, &normal_vec);
+    ///
+    /// // `a` should be in the same hemisphere as the normal:
+    /// assert!(a.dot(&normal_vec) > 0.0);
+    ///
+    /// assert!(a.length_squared() < 1.0);
+    /// assert_eq!(a.length_squared(), 0.4380054);
+    ///
+    /// assert_eq!(
+    ///     a,
+    ///     Vec3::new(
+    ///         -0.32322884,
+    ///         0.11974096,
+    ///         -0.56496954,
+    ///     ),
+    /// );
+    /// ```
+    pub fn random_in_hemisphere<R: Rng + ?Sized>(rng: &mut R, normal: &Vec3) -> Self {
+        let in_unit_sphere = Vec3::random_in_unit_sphere(rng);
+
+        if in_unit_sphere.dot(normal) > 0.0 {
+            // In the same hemisphere as the normal!
+            in_unit_sphere
+        } else {
+            // Not in the same hemisphere as the normal! Flip it.
+            -in_unit_sphere
+        }
+    }
+
     /// Returns the length of the vector, squared.
     ///
     /// ```
