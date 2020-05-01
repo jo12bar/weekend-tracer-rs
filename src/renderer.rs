@@ -28,7 +28,7 @@ fn ray_color<R: Rng + ?Sized>(
         //
         // We hit something! Reflect the ray off in some random manner to create
         // a diffuse effect.
-        let target = hit_record.hit_point + hit_record.normal + Vec3::random_in_unit_sphere(rng);
+        let target = hit_record.hit_point + hit_record.normal + Vec3::random_unit_vector(rng);
         0.5 * ray_color(
             rng,
             &Ray::new(hit_record.hit_point, target - hit_record.hit_point),

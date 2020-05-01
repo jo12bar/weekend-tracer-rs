@@ -137,6 +137,44 @@ impl Vec3 {
         vector
     }
 
+    /// Generate a random unit vector. This is achieved by picking points on the
+    /// surface of the unit sphere, which is in turn done by normalizing points
+    /// picked in the unit ball.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let a = Vec3::random_unit_vector(&mut rng);
+    ///
+    /// assert!(a.length() > 0.999 && a.length() < 1.001);
+    ///
+    /// assert_eq!(a, Vec3::new(
+    ///     -0.5234415,
+    ///     0.843606,
+    ///     0.11974096,
+    /// ));
+    /// ```
+    pub fn random_unit_vector<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        let angle: f32 = rng.gen_range(0.0, 2.0 * std::f32::consts::PI);
+        let z: f32 = rng.gen_range(-1.0, 1.0);
+        let radius = (1.0 - z * z).sqrt();
+
+        Vec3 {
+            x: radius * angle.cos(),
+            y: radius * angle.sin(),
+            z,
+        }
+    }
+
     /// Returns the length of the vector, squared.
     ///
     /// ```
