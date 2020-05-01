@@ -71,26 +71,22 @@ fn main() {
     )
     .get_matches();
 
+    let radius = (std::f32::consts::PI / 4.0).cos();
+
     let world = create_world!(
         Sphere::new(
-            vec3!(0.0, 0.0, -1.0),
-            0.5,
-            Material::lambertian(vec3!(0.1, 0.2, 0.5)),
+            vec3!(-radius, 0.0, -1.0),
+            radius,
+            Material::lambertian(vec3!(0.0, 0.0, 1.0))
         ),
         Sphere::new(
-            vec3!(1.0, 0.0, -1.0),
-            0.5,
-            Material::metal(vec3!(0.8, 0.6, 0.2), 0.0),
-        ),
-        Sphere::new(vec3!(-1.0, 0.0, -1.0), 0.5, Material::dielectric(2.5),),
-        Sphere::new(
-            vec3!(0.0, -100.5, -1.0),
-            100.0,
-            Material::lambertian(vec3!(0.8, 0.8)),
+            vec3!(radius, 0.0, -1.0),
+            radius,
+            Material::lambertian(vec3!(1.0, 0.0, 0.0))
         ),
     );
 
-    let camera = Camera::default();
+    let camera = Camera::new(90.0, (WIDTH as f32) / (HEIGHT as f32));
 
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
