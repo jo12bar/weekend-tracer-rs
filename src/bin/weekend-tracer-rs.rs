@@ -13,9 +13,17 @@ use weekend_tracer_rs::{
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
 const SAMPLES_PER_PIXEL: usize = 100;
+const MAX_REFLECTION_DEPTH: usize = 50;
 
 fn gui_output(world: World, camera: Camera) {
-    let buffer = renderer::render_bgra(WIDTH, HEIGHT, SAMPLES_PER_PIXEL, world, camera);
+    let buffer = renderer::render_bgra(
+        WIDTH,
+        HEIGHT,
+        SAMPLES_PER_PIXEL,
+        MAX_REFLECTION_DEPTH,
+        world,
+        camera,
+    );
 
     let mut window = Window::new(
         "weekend-tracer-rs - ESC to exit",
@@ -34,7 +42,14 @@ fn gui_output(world: World, camera: Camera) {
 }
 
 fn ppm_output(world: World, camera: Camera) {
-    let buffer = renderer::render(WIDTH, HEIGHT, SAMPLES_PER_PIXEL, world, camera);
+    let buffer = renderer::render(
+        WIDTH,
+        HEIGHT,
+        SAMPLES_PER_PIXEL,
+        MAX_REFLECTION_DEPTH,
+        world,
+        camera,
+    );
 
     print!("P3\n{} {}\n255\n", WIDTH, HEIGHT);
 

@@ -11,11 +11,28 @@ use rayon::prelude::*;
 /// Linearly blends white and blue depending on the height of the passed-in
 /// ray's y coordinate, *after* scaling the ray direction to unit length (so
 /// -1.0 <= y <= 1.0).
-fn ray_color(ray: &Ray, world: &World) -> Vec3 {
-    if let Some(hit_record) = world.hit(ray, 0.0, f32::INFINITY) {
-        // Map x/y/z of the normal vector to r/g/b
-        0.5 * (hit_record.normal + vec3!(1.0, 1.0, 1.0))
+fn ray_color<R: Rng + ?Sized>(
+    rng: &mut R,
+    ray: &Ray,
+    world: &World,
+    reflection_depth: usize,
+) -> Vec3 {
+    if reflection_depth == 0 {
+        // If we've exceeded the ray bounce limit, no more light is gathered.
+        vec3!()
+    } else if let Some(hit_record) = world.hit(ray, 0.0, f32::INFINITY) {
+        // We hit something! Reflect the ray off in some random manner to create
+        // a diffuse effect.
+        let target = hit_record.hit_point + hit_record.normal + Vec3::random_in_unit_sphere(rng);
+        0.5 * ray_color(
+            rng,
+            &Ray::new(hit_record.hit_point, target - hit_record.hit_point),
+            world,
+            reflection_depth - 1,
+        )
     } else {
+        // Didn't hit anything! Just render the sky by blending blue and white
+        // linearly based on the y-direction of the ray.
         let unit_direction = ray.direction.unit_vector();
         let t = 0.5 * (unit_direction.y + 1.0);
 
@@ -33,16 +50,24 @@ pub fn render_bgra(
     width: usize,
     height: usize,
     samples_per_pixel: usize,
+    max_reflection_depth: usize,
     world: World,
     camera: Camera,
 ) -> Vec<u32> {
-    render(width, height, samples_per_pixel, world, camera)
-        .into_iter()
-        .map(|pixel| {
-            let (r, g, b) = pixel;
-            (255 << 24) | (r << 16) | (g << 8) | b
-        })
-        .collect()
+    render(
+        width,
+        height,
+        samples_per_pixel,
+        max_reflection_depth,
+        world,
+        camera,
+    )
+    .into_iter()
+    .map(|pixel| {
+        let (r, g, b) = pixel;
+        (255 << 24) | (r << 16) | (g << 8) | b
+    })
+    .collect()
 }
 
 /// Render the scene. Outputs a vector of (r, g, b) integer triples, one for
@@ -52,6 +77,7 @@ pub fn render(
     width: usize,
     height: usize,
     samples_per_pixel: usize,
+    max_reflection_depth: usize,
     world: World,
     camera: Camera,
 ) -> Vec<(u32, u32, u32)> {
@@ -78,7 +104,7 @@ pub fn render(
                 let v = ((j as f32) + rng.gen::<f32>()) / (height as f32);
 
                 let ray = camera.get_ray(u, v);
-                color += ray_color(&ray, &world);
+                color += ray_color(rng, &ray, &world, max_reflection_depth);
             }
 
             // Divide the color total by the number of samples.
