@@ -1,5 +1,6 @@
 use crate::camera::Camera;
 use crate::hittable::{world::World, Hittable};
+use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::clamp;
 use crate::vec3;
@@ -26,15 +27,18 @@ fn ray_color<R: Rng + ?Sized>(
         // This `0.001` is so that we don't get weird "shadow acne" due to
         // floating-point errors.
         //
-        // We hit something! Reflect the ray off in some random manner to create
-        // a diffuse effect.
-        let target = hit_record.hit_point + hit_record.normal + Vec3::random_unit_vector(rng);
-        0.5 * ray_color(
-            rng,
-            &Ray::new(hit_record.hit_point, target - hit_record.hit_point),
-            world,
-            reflection_depth - 1,
-        )
+        // We hit something! Scatter the ray based on material type. If it
+        // successfully scattered, reflect the ray according by the material
+        // type, and recurse. If it was absorbed, just return black.
+        if let Some(Scatter {
+            attenuation,
+            scattered,
+        }) = hit_record.material.scatter(rng, ray, &hit_record)
+        {
+            attenuation * ray_color(rng, &scattered, world, reflection_depth - 1)
+        } else {
+            vec3!()
+        }
     } else {
         // Didn't hit anything! Just render the sky by blending blue and white
         // linearly based on the y-direction of the ray.

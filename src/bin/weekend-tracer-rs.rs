@@ -6,6 +6,7 @@ use weekend_tracer_rs::{
     camera::Camera,
     create_world,
     hittable::{sphere::Sphere, world::World},
+    material::Material,
     renderer, vec3,
     vec3::Vec3,
 };
@@ -70,11 +71,29 @@ fn main() {
     )
     .get_matches();
 
+    let mut rng = rand::thread_rng();
+
     let world = create_world!(
-        Sphere::new(vec3!(0.0, 0.0, -1.0), 0.5),
-        Sphere::new(vec3!(0.75, 0.0, -1.0), 0.25),
-        Sphere::new(vec3!(-0.75, 0.0, -1.0), 0.25),
-        Sphere::new(vec3!(0.0, -100.5, -1.0), 100.0),
+        Sphere::new(
+            vec3!(0.0, 0.0, -1.0),
+            0.5,
+            Material::lambertian(Vec3::random(&mut rng))
+        ),
+        Sphere::new(
+            vec3!(0.75, 0.0, -1.0),
+            0.25,
+            Material::lambertian(Vec3::random(&mut rng))
+        ),
+        Sphere::new(
+            vec3!(-0.75, 0.0, -1.0),
+            0.25,
+            Material::lambertian(Vec3::random(&mut rng))
+        ),
+        Sphere::new(
+            vec3!(0.0, -100.5, -1.0),
+            100.0,
+            Material::lambertian(Vec3::random(&mut rng))
+        ),
     );
 
     let camera = Camera::default();

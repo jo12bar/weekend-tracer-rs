@@ -1,20 +1,26 @@
 //! Structs and methods for working with `Hittable` spheres.
 
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
 /// A sphere. Can be hit with rays.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Copy, Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
+    pub material: Material,
 }
 
 impl Sphere {
     /// Create a new sphere.
-    pub fn new(center: Vec3, radius: f32) -> Sphere {
-        Sphere { center, radius }
+    pub fn new(center: Vec3, radius: f32, material: Material) -> Sphere {
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -50,6 +56,7 @@ impl Hittable for Sphere {
                     t,
                     hit_point,
                     (hit_point - self.center) / self.radius,
+                    self.material,
                 ))
             } else {
                 None

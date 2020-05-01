@@ -3,6 +3,7 @@
 pub mod sphere;
 pub mod world;
 
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
@@ -17,6 +18,8 @@ pub struct HitRecord {
     pub t: f32,
     /// Whether or not the hit was on the front face of the surface.
     pub front_face: bool,
+    /// The material that got hit.
+    pub material: Material,
 }
 
 impl HitRecord {
@@ -24,7 +27,13 @@ impl HitRecord {
     /// `outward_normal` passed to it, such that it always points against the
     /// incident ray. The `outward_normal` should always point out from the
     /// surface.
-    pub fn new(ray: &Ray, t: f32, hit_point: Vec3, outward_normal: Vec3) -> HitRecord {
+    pub fn new(
+        ray: &Ray,
+        t: f32,
+        hit_point: Vec3,
+        outward_normal: Vec3,
+        material: Material,
+    ) -> HitRecord {
         let (front_face, normal) = if ray.direction.dot(&outward_normal) < 0.0 {
             // The ray hit the outside of the surface
             (true, outward_normal)
@@ -38,6 +47,7 @@ impl HitRecord {
             t,
             normal,
             front_face,
+            material,
         }
     }
 }
