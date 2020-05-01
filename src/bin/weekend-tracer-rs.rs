@@ -75,18 +75,14 @@ fn main() {
         Sphere::new(
             vec3!(0.0, 0.0, -1.0),
             0.5,
-            Material::lambertian(vec3!(0.7, 0.3, 0.3)),
+            Material::lambertian(vec3!(0.1, 0.2, 0.5)),
         ),
         Sphere::new(
             vec3!(1.0, 0.0, -1.0),
             0.5,
-            Material::metal(vec3!(0.8, 0.6, 0.2), 0.3),
+            Material::metal(vec3!(0.8, 0.6, 0.2), 0.0),
         ),
-        Sphere::new(
-            vec3!(-1.0, 0.0, -1.0),
-            0.5,
-            Material::metal(vec3!(0.8, 0.8, 0.8), 1.0),
-        ),
+        Sphere::new(vec3!(-1.0, 0.0, -1.0), 0.5, Material::dielectric(2.5),),
         Sphere::new(
             vec3!(0.0, -100.5, -1.0),
             100.0,

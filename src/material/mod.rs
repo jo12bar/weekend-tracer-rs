@@ -1,6 +1,7 @@
 //! Materials. Allows for easy interchangibility between material types on
 //! different objects.
 
+pub mod dielectric;
 pub mod lambertian;
 pub mod metal;
 
@@ -29,6 +30,7 @@ impl Scatter {
 pub enum Material {
     Lambertian(lambertian::Lambertian),
     Metal(metal::Metal),
+    Dielectric(dielectric::Dielectric),
 }
 
 impl Material {
@@ -37,9 +39,14 @@ impl Material {
         Material::Lambertian(lambertian::Lambertian::new(albedo))
     }
 
-    /// Create a new metaalic material.
+    /// Create a new metallic material.
     pub fn metal(albedo: Vec3, fuzz: f32) -> Material {
         Material::Metal(metal::Metal::new(albedo, fuzz))
+    }
+
+    /// Create a new dielectric material.
+    pub fn dielectric(refractive_index: f32) -> Material {
+        Material::Dielectric(dielectric::Dielectric::new(refractive_index))
     }
 
     /// Scatter a ray off a material. Will delegate to the material's
@@ -54,6 +61,7 @@ impl Material {
         match rec.material {
             Material::Lambertian(l) => l.scatter(rng, ray, rec),
             Material::Metal(m) => m.scatter(rng, ray, rec),
+            Material::Dielectric(d) => d.scatter(rng, ray, rec),
         }
     }
 }
