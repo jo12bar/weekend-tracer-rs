@@ -20,7 +20,12 @@ fn ray_color<R: Rng + ?Sized>(
     if reflection_depth == 0 {
         // If we've exceeded the ray bounce limit, no more light is gathered.
         vec3!()
-    } else if let Some(hit_record) = world.hit(ray, 0.0, f32::INFINITY) {
+    } else if let Some(hit_record) = world.hit(ray, 0.001, f32::INFINITY) {
+        //                                          ^^^^^
+        //                                            |
+        // This `0.001` is so that we don't get weird "shadow acne" due to
+        // floating-point errors.
+        //
         // We hit something! Reflect the ray off in some random manner to create
         // a diffuse effect.
         let target = hit_record.hit_point + hit_record.normal + Vec3::random_in_unit_sphere(rng);
@@ -107,13 +112,16 @@ pub fn render(
                 color += ray_color(rng, &ray, &world, max_reflection_depth);
             }
 
-            // Divide the color total by the number of samples.
+            // Divide the color total by the number of samples and gamma-correct
+            // for a gamma value of 2.0.
             let scale = 1.0 / (samples_per_pixel as f32);
-            color *= scale;
+            let r = (scale * color.x).sqrt();
+            let g = (scale * color.y).sqrt();
+            let b = (scale * color.z).sqrt();
 
-            let ir = (256.0 * clamp(color.x, 0.0, 0.999)) as u32;
-            let ig = (256.0 * clamp(color.y, 0.0, 0.999)) as u32;
-            let ib = (256.0 * clamp(color.z, 0.0, 0.999)) as u32;
+            let ir = (256.0 * clamp(r, 0.0, 0.999)) as u32;
+            let ig = (256.0 * clamp(g, 0.0, 0.999)) as u32;
+            let ib = (256.0 * clamp(b, 0.0, 0.999)) as u32;
 
             (ir, ig, ib)
         })
