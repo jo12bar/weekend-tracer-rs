@@ -1,20 +1,12 @@
 use clap::{clap_app, crate_version};
 use minifb::{Key, Window, WindowOptions};
-use std::sync::Arc;
 
-use weekend_tracer_rs::{
-    camera::Camera,
-    create_world,
-    hittable::{sphere::Sphere, world::World},
-    material::Material,
-    renderer, vec3,
-    vec3::Vec3,
-};
+use weekend_tracer_rs::{camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3};
 
-const WIDTH: usize = 200;
-const HEIGHT: usize = 100;
-const SAMPLES_PER_PIXEL: usize = 100;
-const MAX_REFLECTION_DEPTH: usize = 50;
+const WIDTH: usize = 1920;
+const HEIGHT: usize = 1080;
+const SAMPLES_PER_PIXEL: usize = 1000;
+const MAX_REFLECTION_DEPTH: usize = 500;
 
 const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 
@@ -73,38 +65,22 @@ fn main() {
     )
     .get_matches();
 
-    let world = create_world!(
-        // Middle diffuse sphere:
-        Sphere::new(
-            vec3!(0.0, 0.0, -1.0),
-            0.5,
-            Material::lambertian(vec3!(0.1, 0.2, 0.5))
-        ),
-        // Right metallic sphere:
-        Sphere::new(
-            vec3!(1.0, 0.0, -1.0),
-            0.5,
-            Material::metal(vec3!(0.8, 0.6, 0.2), 0.3)
-        ),
-        // Left hollow glass sphere:
-        Sphere::new(vec3!(-1.0, 0.0, -1.0), 0.5, Material::dielectric(1.5)),
-        Sphere::new(vec3!(-1.0, 0.0, -1.0), -0.45, Material::dielectric(1.5)),
-        // Ground:
-        Sphere::new(
-            vec3!(0.0, -100.5, -1.0),
-            100.0,
-            Material::lambertian(vec3!(0.8, 0.8))
-        ),
-    );
+    let world = World::random_scene(&mut rand::thread_rng());
+
+    let lookfrom = vec3!(13.0, 2.0, 3.0);
+    let lookat = vec3!(0.0, 0.0, 0.0);
+    let vup = vec3!(0.0, 1.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
 
     let camera = Camera::new(
-        vec3!(-3.0, 3.0, 2.0),
-        vec3!(0.0, 0.0, -1.0),
-        vec3!(0.0, 1.0),
+        lookfrom,
+        lookat,
+        vup,
         20.0,
         ASPECT_RATIO,
-        2.0,
-        (vec3!(-3.0, 3.0, 2.0) - vec3!(0.0, 0.0, -1.0)).length(),
+        aperture,
+        dist_to_focus,
     );
 
     if matches.is_present("version") {
