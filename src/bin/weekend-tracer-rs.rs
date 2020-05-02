@@ -11,14 +11,15 @@ const MAX_REFLECTION_DEPTH: usize = 50;
 const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 
 fn gui_output(world: World, camera: Camera) {
-    let buffer = renderer::render_bgra(
+    let buffer: Vec<u32> = renderer::convert_to_argb(renderer::render(
         WIDTH,
         HEIGHT,
         SAMPLES_PER_PIXEL,
         MAX_REFLECTION_DEPTH,
         world,
         camera,
-    );
+    ))
+    .collect();
 
     let mut window = Window::new(
         "weekend-tracer-rs - ESC to exit",

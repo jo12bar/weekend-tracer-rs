@@ -9,6 +9,10 @@ use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
 
+/// A pixel. Components are ordered `R`, `G`, `B`. Each component should range
+/// from 0-255.
+pub type Pixel = (u32, u32, u32);
+
 /// Linearly blends white and blue depending on the height of the passed-in
 /// ray's y coordinate, *after* scaling the ray direction to unit length (so
 /// -1.0 <= y <= 1.0).
@@ -50,35 +54,6 @@ fn ray_color<R: Rng + ?Sized>(
     }
 }
 
-/// Render the scene. Outputs a vector of `u32`'s, one for each pixel:
-/// - The upper 8 bits is for the alpha channel.
-/// - The next 8 bits is for the red channel.
-/// - The next 8 bits is for the blue channel.
-/// - The lowest 8 bits is for the green channel.
-pub fn render_bgra(
-    width: usize,
-    height: usize,
-    samples_per_pixel: usize,
-    max_reflection_depth: usize,
-    world: World,
-    camera: Camera,
-) -> Vec<u32> {
-    render(
-        width,
-        height,
-        samples_per_pixel,
-        max_reflection_depth,
-        world,
-        camera,
-    )
-    .into_iter()
-    .map(|pixel| {
-        let (r, g, b) = pixel;
-        (255 << 24) | (r << 16) | (g << 8) | b
-    })
-    .collect()
-}
-
 /// Render the scene. Outputs a vector of (r, g, b) integer triples, one for
 /// each pixel, which can range from 0 to 255.
 #[allow(clippy::many_single_char_names)]
@@ -89,7 +64,7 @@ pub fn render(
     max_reflection_depth: usize,
     world: World,
     camera: Camera,
-) -> Vec<(u32, u32, u32)> {
+) -> Vec<Pixel> {
     let pb_style = ProgressStyle::default_bar()
         .template("{spinner} {msg} [{elapsed_precise}] [{bar:30.yellow/blue}] {pos}/{len}")
         .progress_chars("=>-");
@@ -130,4 +105,21 @@ pub fn render(
             (ir, ig, ib)
         })
         .collect()
+}
+
+/// Convert a rendered scene into a iterator over
+/// [ARGB](https://en.wikipedia.org/wiki/RGBA_color_model#ARGB_(word-order))
+/// 32-bit unsigned colour integers:
+/// - The upper 8 bits is for the alpha channel.
+/// - The next 8 bits is for the red channel.
+/// - The next 8 bits is for the blue channel.
+/// - The lowest 8 bits is for the green channel.
+pub fn convert_to_argb<I>(rendered_scene: I) -> impl Iterator<Item = u32>
+where
+    I: IntoIterator<Item = Pixel>,
+{
+    rendered_scene.into_iter().map(|pixel| {
+        let (r, g, b) = pixel;
+        (255 << 24) | (r << 16) | (g << 8) | b
+    })
 }
