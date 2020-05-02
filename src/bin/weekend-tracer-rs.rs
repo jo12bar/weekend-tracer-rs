@@ -3,10 +3,10 @@ use minifb::{Key, Window, WindowOptions};
 
 use weekend_tracer_rs::{camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3};
 
-const WIDTH: usize = 1920;
-const HEIGHT: usize = 1080;
-const SAMPLES_PER_PIXEL: usize = 1000;
-const MAX_REFLECTION_DEPTH: usize = 500;
+const WIDTH: usize = 200;
+const HEIGHT: usize = 100;
+const SAMPLES_PER_PIXEL: usize = 100;
+const MAX_REFLECTION_DEPTH: usize = 50;
 
 const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 

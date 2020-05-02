@@ -56,7 +56,8 @@ impl World {
                         Material::metal(albedo, fuzz)
                     } else {
                         // Glass
-                        Material::dielectric(1.5)
+                        let albedo = Vec3::random_range(rng, 0.5, 1.0);
+                        Material::dielectric_with_albedo(albedo, 1.5)
                     };
 
                     objects.push(Arc::new(Sphere::new(center, 0.2, material)));
@@ -68,7 +69,7 @@ impl World {
         objects.push(Arc::new(Sphere::new(
             vec3!(0.0, 1.0),
             1.0,
-            Material::dielectric(1.5),
+            Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5),
         )));
 
         // Large diffuse ball:

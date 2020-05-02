@@ -10,20 +10,30 @@ pub struct Dielectric {
     /// The refractive index of the material. This affects how it refracts or
     /// reflects rays, based on Snell's law.
     pub refractive_index: f32,
+    /// The albedo. Is `vec3!(1.0, 1.0, 1.0)` by default if you use
+    /// `Dielectric::new()`. Can be changed with `Dielectric::new_with_albedo()`.
+    pub albedo: Vec3,
 }
 
 impl Dielectric {
     pub fn new(refractive_index: f32) -> Self {
-        Self { refractive_index }
+        Self::new_with_albedo(vec3!(1.0, 1.0, 1.0), refractive_index)
+    }
+
+    pub fn new_with_albedo(albedo: Vec3, refractive_index: f32) -> Self {
+        Self {
+            albedo,
+            refractive_index,
+        }
     }
 
     pub fn scatter<R: Rng + ?Sized>(
-        self,
+        &self,
         rng: &mut R,
         ray_in: &Ray,
         rec: &HitRecord,
     ) -> Option<Scatter> {
-        let attenuation = vec3!(1.0, 1.0, 1.0);
+        let attenuation = self.albedo;
 
         // Always assume that the bordering material is air, which has a
         // refractive index of 1.0. Here we find η/η′.

@@ -49,6 +49,14 @@ impl Material {
         Material::Dielectric(dielectric::Dielectric::new(refractive_index))
     }
 
+    /// Create a new dielectric material with a custom albedo.
+    pub fn dielectric_with_albedo(albedo: Vec3, refractive_index: f32) -> Material {
+        Material::Dielectric(dielectric::Dielectric::new_with_albedo(
+            albedo,
+            refractive_index,
+        ))
+    }
+
     /// Scatter a ray off a material. Will delegate to the material's
     /// implementation of `scatter()`. Returns `Some(Scatter)` if the ray is
     /// scattered, `None` if it isn't.
