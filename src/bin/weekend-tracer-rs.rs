@@ -1,4 +1,6 @@
 use clap::{clap_app, crate_version};
+
+#[cfg(feature = "gui-support")]
 use minifb::{Key, Window, WindowOptions};
 
 use weekend_tracer_rs::{camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3};
@@ -10,6 +12,7 @@ const MAX_REFLECTION_DEPTH: usize = 50;
 
 const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 
+#[cfg(feature = "gui-support")]
 fn gui_output(world: World, camera: Camera) {
     let buffer: Vec<u32> = renderer::convert_to_argb(renderer::render(
         WIDTH,
@@ -55,16 +58,27 @@ fn ppm_output(world: World, camera: Camera) {
 }
 
 fn main() {
-    let matches = clap_app!(weekend_tracer_rs =>
+    #[allow(unused_mut)]
+    let mut app = clap_app!(weekend_tracer_rs =>
         (version: crate_version!())
         (author: "Johann M. Barnard <johann.b@telus.net>")
         (about: "A simple ray-tracing renderer. If no options are passed, the \
                  image is outputted in a ASCII PPM image format to \
                  stdout. This can be redirected to a .ppm file.")
         (@arg version: -v --version "Outputs version information.")
-        (@arg gui: -g --gui "Render to a window instead of to stdout.")
-    )
-    .get_matches();
+    );
+
+    #[cfg(feature = "gui-support")]
+    {
+        app = app.arg(
+            clap::Arg::with_name("gui")
+                .short("g")
+                .long("gui")
+                .help("Render to a window instead of to stdout."),
+        );
+    }
+
+    let matches = app.get_matches();
 
     let world = World::random_scene(&mut rand::thread_rng());
 
@@ -87,6 +101,7 @@ fn main() {
     if matches.is_present("version") {
         println!("weekend-tracer-rs {}", crate_version!());
     } else if matches.is_present("gui") {
+        #[cfg(feature = "gui-support")]
         gui_output(world, camera);
     } else {
         ppm_output(world, camera);
