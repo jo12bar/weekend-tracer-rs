@@ -98,11 +98,13 @@ fn main() {
     );
 
     let camera = Camera::new(
-        vec3!(-2.0, 2.0, 1.0),
+        vec3!(-3.0, 3.0, 2.0),
         vec3!(0.0, 0.0, -1.0),
         vec3!(0.0, 1.0),
         20.0,
         ASPECT_RATIO,
+        2.0,
+        (vec3!(-3.0, 3.0, 2.0) - vec3!(0.0, 0.0, -1.0)).length(),
     );
 
     if matches.is_present("version") {

@@ -112,7 +112,7 @@ pub fn render(
                 let u = ((i as f32) + rng.gen::<f32>()) / (width as f32);
                 let v = ((j as f32) + rng.gen::<f32>()) / (height as f32);
 
-                let ray = camera.get_ray(u, v);
+                let ray = camera.get_ray(rng, u, v);
                 color += ray_color(rng, &ray, &world, max_reflection_depth);
             }
 

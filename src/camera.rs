@@ -1,6 +1,7 @@
 //! A camera for viewing our world.
 
 use crate::{ray::Ray, util::deg_to_rad, vec3, vec3::Vec3};
+use rand::Rng;
 
 /// A simple axis-aligned camera.
 #[derive(Debug, Copy, Clone)]
@@ -14,6 +15,16 @@ pub struct Camera {
     pub vertical: Vec3,
     /// The location of our camera.
     pub origin: Vec3,
+
+    /// Horizontal component of orthogonal basis.
+    u: Vec3,
+    /// Vertical component of orthogonal basis.
+    v: Vec3,
+    /// Depth-wise component of orthogonal basis.
+    w: Vec3,
+
+    /// The radius of the lens.
+    lens_radius: f32,
 }
 
 impl Camera {
@@ -25,7 +36,17 @@ impl Camera {
     ///   angle the camera is rolled at.
     /// - `vfov` is the top-to-bottom field of view, in degrees.
     /// - `aspect` is the aspect ratio, width:height.
-    pub fn new(lookfrom: Vec3, lookat: Vec3, vup: Vec3, vfov: f32, aspect: f32) -> Self {
+    /// - `aperture` is the camera's aperture.
+    /// - `focus_distance` is the distance from the camera that is in focus.
+    pub fn new(
+        lookfrom: Vec3,
+        lookat: Vec3,
+        vup: Vec3,
+        vfov: f32,
+        aspect: f32,
+        aperture: f32,
+        focus_distance: f32,
+    ) -> Self {
         let theta = deg_to_rad(vfov);
         let half_height = (theta / 2.0).tan();
         let half_width = aspect * half_height;
@@ -38,30 +59,46 @@ impl Camera {
         let v = w.cross(&u);
 
         Self {
-            lower_left_corner: lookfrom - half_width * u - half_height * v - w,
-            horizontal: 2.0 * half_width * u,
-            vertical: 2.0 * half_height * v,
+            lower_left_corner: lookfrom
+                - half_width * focus_distance * u
+                - half_height * focus_distance * v
+                - focus_distance * w,
+            horizontal: 2.0 * half_width * focus_distance * u,
+            vertical: 2.0 * half_height * focus_distance * v,
             origin: lookfrom,
+            u,
+            v,
+            w,
+            lens_radius: aperture / 2.0,
         }
     }
 
     /// Returns a ray that starts at the camera's origin and passes through
-    /// screen coordinate (u, v).
-    pub fn get_ray(&self, u: f32, v: f32) -> Ray {
+    /// screen coordinate (s, t). Will change starting location based on
+    /// aperture of the camera and focal length.
+    pub fn get_ray<R: Rng + ?Sized>(&self, rng: &mut R, s: f32, t: f32) -> Ray {
+        let rd = self.lens_radius * Vec3::random_in_unit_disk(rng);
+        let offset = self.u * rd.x + self.v * rd.y;
+
         Ray::new(
-            self.origin,
-            self.lower_left_corner + (u * self.horizontal) + (v * self.vertical) - self.origin,
+            self.origin + offset,
+            self.lower_left_corner + (s * self.horizontal) + (t * self.vertical)
+                - self.origin
+                - offset,
         )
     }
 }
 
 impl Default for Camera {
     fn default() -> Self {
-        Camera {
-            lower_left_corner: vec3!(-2.0, -1.0, -1.0),
-            horizontal: vec3!(4.0, 0.0, 0.0),
-            vertical: vec3!(0.0, 2.0, 0.0),
-            origin: vec3!(0.0, 0.0, 0.0),
-        }
+        Camera::new(
+            vec3!(0.0, 0.0, 0.0),
+            vec3!(0.0, 0.0, -1.0),
+            vec3!(0.0, 1.0, 0.0),
+            90.0,
+            2.0,
+            1.0,
+            1.0,
+        )
     }
 }
