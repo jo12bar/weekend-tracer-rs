@@ -12,6 +12,7 @@ const MAX_REFLECTION_DEPTH: usize = 50;
 
 const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 
+/// Render to a simple cross-platform window using the `minifb` crate.
 #[cfg(feature = "gui-support")]
 fn gui_output(world: World, camera: Camera) {
     let buffer: Vec<u32> = renderer::convert_to_argb(renderer::render(
@@ -40,21 +41,23 @@ fn gui_output(world: World, camera: Camera) {
     }
 }
 
-fn ppm_output(world: World, camera: Camera) {
-    let buffer = renderer::render(
+/// Render to an ASCII PPM `.ppm` file.
+fn ppm_output(filename: &str, world: World, camera: Camera) -> std::io::Result<()> {
+    let output = renderer::render(
         WIDTH,
         HEIGHT,
         SAMPLES_PER_PIXEL,
         MAX_REFLECTION_DEPTH,
         world,
         camera,
-    );
+    )
+    .into_iter()
+    .map(|(r, g, b)| format!("{} {} {}", r, g, b))
+    .fold(format!("P3\n{} {}\n255\n", WIDTH, HEIGHT), |s, pixel| {
+        s + &pixel + "\n"
+    });
 
-    print!("P3\n{} {}\n255\n", WIDTH, HEIGHT);
-
-    for (r, g, b) in buffer.iter() {
-        println!("{} {} {}", r, g, b);
-    }
+    std::fs::write(filename, output)
 }
 
 fn main() {
@@ -64,8 +67,10 @@ fn main() {
         (author: "Johann M. Barnard <johann.b@telus.net>")
         (about: "A simple ray-tracing renderer. If no options are passed, the \
                  image is outputted in a ASCII PPM image format to \
-                 stdout. This can be redirected to a .ppm file.")
-        (@arg version: -v --version "Outputs version information.")
+                 <OUTPUT_FILE> (e.g. render.ppm, image.ppm, etc...)")
+        (@group image_output +multiple =>
+            (@arg OUTPUT_FILE: required_unless[gui] "The file to be outputted to.")
+        )
     );
 
     #[cfg(feature = "gui-support")]
@@ -74,7 +79,8 @@ fn main() {
             clap::Arg::with_name("gui")
                 .short("g")
                 .long("gui")
-                .help("Render to a window instead of to stdout."),
+                .help("Render to a window instead of to stdout.")
+                .conflicts_with("image_output"),
         );
     }
 
@@ -98,12 +104,14 @@ fn main() {
         dist_to_focus,
     );
 
-    if matches.is_present("version") {
-        println!("weekend-tracer-rs {}", crate_version!());
-    } else if matches.is_present("gui") {
+    if matches.is_present("gui") {
         #[cfg(feature = "gui-support")]
         gui_output(world, camera);
     } else {
-        ppm_output(world, camera);
+        // Calling .unwrap() is safe here because we require that the OUTPUT_FILE
+        // is present if --gui/-g is not present.
+        let output_file = matches.value_of("OUTPUT_FILE").unwrap();
+
+        ppm_output(output_file, world, camera).unwrap();
     }
 }
