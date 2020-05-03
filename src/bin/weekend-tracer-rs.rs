@@ -60,16 +60,46 @@ fn ppm_output(filename: &str, world: World, camera: Camera) -> std::io::Result<(
     std::fs::write(filename, output)
 }
 
+/// Render to some arbritrary image file type. Whatever the `image` crate
+/// supports.
+fn image_output(filename: &str, world: World, camera: Camera) {
+    let rendered = renderer::render(
+        WIDTH,
+        HEIGHT,
+        SAMPLES_PER_PIXEL,
+        MAX_REFLECTION_DEPTH,
+        world,
+        camera,
+    )
+    .into_iter()
+    .map(|(r, g, b)| vec![r as u8, g as u8, b as u8])
+    .flatten()
+    .collect::<Vec<_>>();
+
+    image::save_buffer(
+        filename,
+        &rendered[..],
+        WIDTH as u32,
+        HEIGHT as u32,
+        image::ColorType::Rgb8,
+    )
+    .unwrap();
+}
+
 fn main() {
     #[allow(unused_mut)]
     let mut app = clap_app!(weekend_tracer_rs =>
         (version: crate_version!())
         (author: "Johann M. Barnard <johann.b@telus.net>")
         (about: "A simple ray-tracing renderer. If no options are passed, the \
-                 image is outputted in a ASCII PPM image format to \
-                 <OUTPUT_FILE> (e.g. render.ppm, image.ppm, etc...)")
+                 image is outputted in some image format to \
+                 <OUTPUT_FILE> (e.g. image.png, image.JPEG, etc...). The output \
+                 format is deduced from the file name extension. JPEG, PNG, \
+                 GIF, BMP, TIFF, ICO, and PPM (the binary version) formats are \
+                 supported.")
         (@group image_output +multiple =>
             (@arg OUTPUT_FILE: required_unless[gui] "The file to be outputted to.")
+            (@arg ppm: -p --ppm "Output to an ASCII PPM file (e.g. test.ppm, image.ppm, etc...).")
         )
     );
 
@@ -112,6 +142,10 @@ fn main() {
         // is present if --gui/-g is not present.
         let output_file = matches.value_of("OUTPUT_FILE").unwrap();
 
-        ppm_output(output_file, world, camera).unwrap();
+        if matches.is_present("ppm") {
+            ppm_output(output_file, world, camera).unwrap();
+        } else {
+            image_output(output_file, world, camera);
+        }
     }
 }
