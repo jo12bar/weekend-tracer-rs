@@ -7,28 +7,27 @@ use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Vec3;
 use rand::Rng;
-use std::sync::Arc;
 
 /// The world that needs to be rendered, with all of its objects. Every object
 /// needs to implement `Hittable`. Coincidentally, this struct *also* implements
 /// `Hittable`.
 #[derive(Default, Debug)]
 pub struct World {
-    pub objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Box<dyn Hittable>>,
 }
 
 impl World {
     /// Create a new `World`, filled with the passed-in `objects`.
-    pub fn new(objects: Vec<Arc<dyn Hittable>>) -> Self {
+    pub fn new(objects: Vec<Box<dyn Hittable>>) -> Self {
         World { objects }
     }
 
     /// Create a random scene for funsies!
     pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        let mut objects: Vec<Arc<dyn Hittable>> = Vec::default();
+        let mut objects: Vec<Box<dyn Hittable>> = Vec::default();
 
         // Ground:
-        objects.push(Arc::new(Sphere::new(
+        objects.push(Box::new(Sphere::new(
             vec3!(0.0, -1000.0, 0.0),
             1000.0,
             Material::lambertian(vec3!(0.5, 0.5, 0.5)),
@@ -64,7 +63,7 @@ impl World {
                     if choose_mat < 0.8 {
                         // Diffuse material. Randombly translate y coordinate
                         // during capture.
-                        objects.push(Arc::new(MovingSphere::new(
+                        objects.push(Box::new(MovingSphere::new(
                             center,
                             center + vec3!(0.0, rng.gen_range(0.0, 0.5), 0.0),
                             0.0,
@@ -74,28 +73,28 @@ impl World {
                         )));
                     } else {
                         // Either a metal or a dielectric. Doesn't move.
-                        objects.push(Arc::new(Sphere::new(center, 0.2, material)));
+                        objects.push(Box::new(Sphere::new(center, 0.2, material)));
                     }
                 }
             }
         }
 
         // Large glass ball:
-        objects.push(Arc::new(Sphere::new(
+        objects.push(Box::new(Sphere::new(
             vec3!(0.0, 1.0),
             1.0,
             Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5),
         )));
 
         // Large diffuse ball:
-        objects.push(Arc::new(Sphere::new(
+        objects.push(Box::new(Sphere::new(
             vec3!(-4.0, 1.0),
             1.0,
             Material::lambertian(vec3!(0.4, 0.2, 0.1)),
         )));
 
         // Large metal ball:
-        objects.push(Arc::new(Sphere::new(
+        objects.push(Box::new(Sphere::new(
             vec3!(4.0, 1.0),
             1.0,
             Material::metal(vec3!(0.7, 0.6, 0.5), 0.0),
@@ -105,7 +104,7 @@ impl World {
     }
 
     /// Add an object to the `World`.
-    pub fn add(&mut self, object: Arc<dyn Hittable>) -> &mut Self {
+    pub fn add(&mut self, object: Box<dyn Hittable>) -> &mut Self {
         self.objects.push(object);
         self
     }
@@ -160,7 +159,7 @@ impl Hittable for World {
 macro_rules! create_world {
     ($($object:expr),* $(,)?) => {
         World::new(vec![
-            $(Arc::new($object)),*
+            $(Box::new($object)),*
         ])
     };
 }
