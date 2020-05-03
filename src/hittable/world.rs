@@ -12,7 +12,7 @@ use std::sync::Arc;
 /// The world that needs to be rendered, with all of its objects. Every object
 /// needs to implement `Hittable`. Coincidentally, this struct *also* implements
 /// `Hittable`.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct World {
     pub objects: Vec<Arc<dyn Hittable>>,
 }

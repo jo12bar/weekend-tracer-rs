@@ -58,7 +58,7 @@ impl HitRecord {
 /// way to test if an object will be hit by a ray, and to return information
 /// about things like the hit point, the normal vector to the object at the hit
 /// point, and how far along the ray the hit point is located.
-pub trait Hittable: Send + Sync {
+pub trait Hittable: Send + Sync + core::fmt::Debug {
     /// Test if a ray will hit something.
     ///
     /// Note that this ray tracer only counts valid hits if they are within the
