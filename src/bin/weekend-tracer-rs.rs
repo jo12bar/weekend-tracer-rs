@@ -3,7 +3,9 @@ use clap::{clap_app, crate_version};
 #[cfg(feature = "gui-support")]
 use minifb::{Key, Window, WindowOptions};
 
-use weekend_tracer_rs::{camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3};
+use weekend_tracer_rs::{
+    bvh::BVH, camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3,
+};
 
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
@@ -14,13 +16,13 @@ const ASPECT_RATIO: f32 = (WIDTH as f32) / (HEIGHT as f32);
 
 /// Render to a simple cross-platform window using the `minifb` crate.
 #[cfg(feature = "gui-support")]
-fn gui_output(world: World, camera: Camera) {
+fn gui_output(bvh: BVH, camera: Camera) {
     let buffer: Vec<u32> = renderer::convert_to_argb(renderer::render(
         WIDTH,
         HEIGHT,
         SAMPLES_PER_PIXEL,
         MAX_REFLECTION_DEPTH,
-        world,
+        bvh,
         camera,
     ))
     .collect();
@@ -42,13 +44,13 @@ fn gui_output(world: World, camera: Camera) {
 }
 
 /// Render to an ASCII PPM `.ppm` file.
-fn ppm_output(filename: &str, world: World, camera: Camera) -> std::io::Result<()> {
+fn ppm_output(filename: &str, bvh: BVH, camera: Camera) -> std::io::Result<()> {
     let output = renderer::render(
         WIDTH,
         HEIGHT,
         SAMPLES_PER_PIXEL,
         MAX_REFLECTION_DEPTH,
-        world,
+        bvh,
         camera,
     )
     .into_iter()
@@ -62,13 +64,13 @@ fn ppm_output(filename: &str, world: World, camera: Camera) -> std::io::Result<(
 
 /// Render to some arbritrary image file type. Whatever the `image` crate
 /// supports.
-fn image_output(filename: &str, world: World, camera: Camera) {
+fn image_output(filename: &str, bvh: BVH, camera: Camera) {
     let rendered = renderer::render(
         WIDTH,
         HEIGHT,
         SAMPLES_PER_PIXEL,
         MAX_REFLECTION_DEPTH,
-        world,
+        bvh,
         camera,
     )
     .into_iter()
@@ -117,6 +119,7 @@ fn main() {
     let matches = app.get_matches();
 
     let world = World::random_scene(&mut rand::thread_rng());
+    let bvh = BVH::new(&mut rand::thread_rng(), world.objects, 0.0, 1.0);
 
     let lookfrom = vec3!(13.0, 2.0, 3.0);
     let lookat = vec3!(0.0, 0.0, 0.0);
@@ -138,16 +141,16 @@ fn main() {
 
     if matches.is_present("gui") {
         #[cfg(feature = "gui-support")]
-        gui_output(world, camera);
+        gui_output(bvh, camera);
     } else {
         // Calling .unwrap() is safe here because we require that the OUTPUT_FILE
         // is present if --gui/-g is not present.
         let output_file = matches.value_of("OUTPUT_FILE").unwrap();
 
         if matches.is_present("ppm") {
-            ppm_output(output_file, world, camera).unwrap();
+            ppm_output(output_file, bvh, camera).unwrap();
         } else {
-            image_output(output_file, world, camera);
+            image_output(output_file, bvh, camera);
         }
     }
 }

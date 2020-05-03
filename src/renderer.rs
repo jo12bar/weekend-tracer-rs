@@ -1,5 +1,6 @@
+use crate::bvh::BVH;
 use crate::camera::Camera;
-use crate::hittable::{world::World, Hittable};
+use crate::hittable::Hittable;
 use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::clamp;
@@ -16,18 +17,13 @@ pub type Pixel = (u32, u32, u32);
 /// Linearly blends white and blue depending on the height of the passed-in
 /// ray's y coordinate, *after* scaling the ray direction to unit length (so
 /// -1.0 <= y <= 1.0).
-fn ray_color<R: Rng + ?Sized>(
-    rng: &mut R,
-    ray: &Ray,
-    world: &World,
-    reflection_depth: usize,
-) -> Vec3 {
+fn ray_color<R: Rng + ?Sized>(rng: &mut R, ray: &Ray, bvh: &BVH, reflection_depth: usize) -> Vec3 {
     if reflection_depth == 0 {
         // If we've exceeded the ray bounce limit, no more light is gathered.
         vec3!()
-    } else if let Some(hit_record) = world.hit(ray, 0.001, f32::INFINITY) {
-        //                                          ^^^^^
-        //                                            |
+    } else if let Some(hit_record) = bvh.hit(ray, 0.001, f32::INFINITY) {
+        //                                        ^^^^^
+        //                                          |
         // This `0.001` is so that we don't get weird "shadow acne" due to
         // floating-point errors.
         //
@@ -39,7 +35,7 @@ fn ray_color<R: Rng + ?Sized>(
             scattered,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
-            attenuation * ray_color(rng, &scattered, world, reflection_depth - 1)
+            attenuation * ray_color(rng, &scattered, bvh, reflection_depth - 1)
         } else {
             vec3!()
         }
@@ -62,7 +58,7 @@ pub fn render(
     height: usize,
     samples_per_pixel: usize,
     max_reflection_depth: usize,
-    world: World,
+    bvh: BVH,
     camera: Camera,
 ) -> Vec<Pixel> {
     let pb_style = ProgressStyle::default_bar()
@@ -88,7 +84,7 @@ pub fn render(
                 let v = ((j as f32) + rng.gen::<f32>()) / (height as f32);
 
                 let ray = camera.get_ray(rng, u, v);
-                color += ray_color(rng, &ray, &world, max_reflection_depth);
+                color += ray_color(rng, &ray, &bvh, max_reflection_depth);
             }
 
             // Divide the color total by the number of samples and gamma-correct
