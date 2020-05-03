@@ -1,6 +1,6 @@
 //! The world to be rendered.
 
-use crate::hittable::{sphere::Sphere, HitRecord, Hittable};
+use crate::hittable::{moving_sphere::MovingSphere, sphere::Sphere, HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3;
@@ -60,7 +60,21 @@ impl World {
                         Material::dielectric_with_albedo(albedo, 1.5)
                     };
 
-                    objects.push(Arc::new(Sphere::new(center, 0.2, material)));
+                    if choose_mat < 0.8 {
+                        // Diffuse material. Randombly translate y coordinate
+                        // during capture.
+                        objects.push(Arc::new(MovingSphere::new(
+                            center,
+                            center + vec3!(0.0, rng.gen_range(0.0, 0.5), 0.0),
+                            0.0,
+                            1.0,
+                            0.2,
+                            material,
+                        )));
+                    } else {
+                        // Either a metal or a dielectric. Doesn't move.
+                        objects.push(Arc::new(Sphere::new(center, 0.2, material)));
+                    }
                 }
             }
         }
