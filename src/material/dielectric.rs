@@ -64,11 +64,11 @@ impl Dielectric {
         let scattered = if (etai_over_etat * sin_theta > 1.0) || (rng.gen::<f32>() < reflect_prob) {
             // Ray must reflect.
             let reflected = unit_direction.reflect(&rec.normal);
-            Ray::new(rec.hit_point, reflected)
+            Ray::new(rec.hit_point, reflected, ray_in.time)
         } else {
             // Ray must refract.
             let refracted = unit_direction.refract(&rec.normal, etai_over_etat);
-            Ray::new(rec.hit_point, refracted)
+            Ray::new(rec.hit_point, refracted, ray_in.time)
         };
 
         Some(Scatter::new(attenuation, scattered))

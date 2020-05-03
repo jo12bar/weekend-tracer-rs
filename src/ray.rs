@@ -22,12 +22,19 @@ pub struct Ray {
     pub origin: Vec3,
     // The ray's direction.
     pub direction: Vec3,
+    /// The time the ray exists at.
+    pub time: f32,
 }
 
 impl Ray {
     /// Creates a new `Ray` at origin `origin` with direction `direction`.
-    pub fn new(origin: Vec3, direction: Vec3) -> Self {
-        Ray { origin, direction }
+    /// The ray exists at time `time`.
+    pub fn new(origin: Vec3, direction: Vec3, time: f32) -> Self {
+        Ray {
+            origin,
+            direction,
+            time,
+        }
     }
 
     /// Get the position of the ray at parameter `t`.
@@ -37,7 +44,7 @@ impl Ray {
     /// use weekend_tracer_rs::vec3;
     /// use weekend_tracer_rs::vec3::Vec3;
     ///
-    /// let r = Ray::new(vec3!(), vec3!(1.0, 2.0, -3.0));
+    /// let r = Ray::new(vec3!(), vec3!(1.0, 2.0, -3.0), 0.0);
     ///
     /// assert_eq!(r.at(0.0), vec3!());
     /// assert_eq!(r.at(1.0), vec3!(1.0, 2.0, -3.0));

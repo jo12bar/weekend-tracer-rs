@@ -25,6 +25,11 @@ pub struct Camera {
 
     /// The radius of the lens.
     lens_radius: f32,
+
+    /// The time that the camera starts capturing an image.
+    pub time0: f32,
+    /// The time that the camera stops capturing an image.
+    pub time1: f32,
 }
 
 impl Camera {
@@ -38,6 +43,9 @@ impl Camera {
     /// - `aspect` is the aspect ratio, width:height.
     /// - `aperture` is the camera's aperture.
     /// - `focus_distance` is the distance from the camera that is in focus.
+    /// - `time0` is the time that the camera starts capturing an image.
+    /// - `time1` is the time that the camera stops capturing an image.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         lookfrom: Vec3,
         lookat: Vec3,
@@ -46,6 +54,8 @@ impl Camera {
         aspect: f32,
         aperture: f32,
         focus_distance: f32,
+        time0: f32,
+        time1: f32,
     ) -> Self {
         let theta = deg_to_rad(vfov);
         let half_height = (theta / 2.0).tan();
@@ -70,6 +80,8 @@ impl Camera {
             v,
             w,
             lens_radius: aperture / 2.0,
+            time0: if time0 > time1 { time1 } else { time0 },
+            time1,
         }
     }
 
@@ -80,11 +92,19 @@ impl Camera {
         let rd = self.lens_radius * Vec3::random_in_unit_disk(rng);
         let offset = self.u * rd.x + self.v * rd.y;
 
+        // Send the ray out at a random time between time0 and time1:
+        let time = if (self.time1 - self.time0).abs() < f32::EPSILON {
+            self.time0
+        } else {
+            rng.gen_range(self.time0, self.time1)
+        };
+
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + (s * self.horizontal) + (t * self.vertical)
                 - self.origin
                 - offset,
+            time,
         )
     }
 }
@@ -99,6 +119,8 @@ impl Default for Camera {
             2.0,
             1.0,
             1.0,
+            0.0,
+            0.0,
         )
     }
 }

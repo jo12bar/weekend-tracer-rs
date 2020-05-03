@@ -132,6 +132,8 @@ fn main() {
         ASPECT_RATIO,
         aperture,
         dist_to_focus,
+        0.0,
+        0.0,
     );
 
     if matches.is_present("gui") {

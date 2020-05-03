@@ -29,6 +29,7 @@ impl Metal {
         let scattered = Ray::new(
             rec.hit_point,
             reflected + self.fuzz * Vec3::random_in_unit_sphere(rng),
+            ray_in.time,
         );
         let attenuation = self.albedo;
 
