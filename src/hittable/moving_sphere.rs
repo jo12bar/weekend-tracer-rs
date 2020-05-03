@@ -1,9 +1,11 @@
 //! Structs and methods for working with **moving** `Hittable` spheres.
 
 use crate::{
+    aabb::AABB,
     hittable::{HitRecord, Hittable},
     material::Material,
     ray::Ray,
+    vec3,
     vec3::Vec3,
 };
 
@@ -110,5 +112,17 @@ impl Hittable for MovingSphere {
         } else {
             None
         }
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        let box0 = AABB::new(
+            self.center(t0) - vec3!(self.radius, self.radius, self.radius),
+            self.center(t0) + vec3!(self.radius, self.radius, self.radius),
+        );
+        let box1 = AABB::new(
+            self.center(t1) - vec3!(self.radius, self.radius, self.radius),
+            self.center(t1) + vec3!(self.radius, self.radius, self.radius),
+        );
+        Some(AABB::surrounding_box(box0, box1))
     }
 }

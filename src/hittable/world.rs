@@ -1,5 +1,6 @@
 //! The world to be rendered.
 
+use crate::aabb::AABB;
 use crate::hittable::{moving_sphere::MovingSphere, sphere::Sphere, HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -125,6 +126,32 @@ impl Hittable for World {
         }
 
         rec
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        if self.objects.is_empty() {
+            return None;
+        }
+
+        let mut first_box = true;
+        let mut temp_box: Option<AABB>;
+        let mut output_box = AABB::new(vec3!(), vec3!());
+
+        for object in &self.objects {
+            temp_box = object.bounding_box(t0, t1);
+            if let Some(temp_box) = temp_box {
+                output_box = if first_box {
+                    temp_box
+                } else {
+                    AABB::surrounding_box(output_box, temp_box)
+                };
+                first_box = false;
+            } else {
+                return None;
+            }
+        }
+
+        Some(output_box)
     }
 }
 

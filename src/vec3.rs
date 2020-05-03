@@ -512,6 +512,12 @@ impl fmt::Display for Vec3 {
     }
 }
 
+impl std::convert::From<Vec3> for [f32; 3] {
+    fn from(item: Vec3) -> Self {
+        [item.x, item.y, item.z]
+    }
+}
+
 /// A convenience macro for more easily building `Vec3`'s. Use it like this:
 ///
 /// ```

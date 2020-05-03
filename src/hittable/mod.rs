@@ -4,6 +4,7 @@ pub mod moving_sphere;
 pub mod sphere;
 pub mod world;
 
+use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
@@ -68,4 +69,12 @@ pub trait Hittable: Send + Sync {
     /// - `None` if the surface didn't hit anything.
     /// - `Some(HitRecord)` if the surface *did* hit something.
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+
+    /// Computes the bounding box of the object.
+    ///
+    /// # Returns:
+    ///
+    /// - `None` if the bounding box couldn't be computed.
+    /// - `Some(AABB)` if the bounding box was successfully computed.
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB>;
 }

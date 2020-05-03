@@ -1,8 +1,10 @@
 //! Structs and methods for working with `Hittable` spheres.
 
+use crate::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::vec3;
 use crate::vec3::Vec3;
 
 /// A sphere. Can be hit with rays.
@@ -64,5 +66,12 @@ impl Hittable for Sphere {
         } else {
             None
         }
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        Some(AABB::new(
+            self.center - vec3!(self.radius, self.radius, self.radius),
+            self.center + vec3!(self.radius, self.radius, self.radius),
+        ))
     }
 }
