@@ -74,4 +74,8 @@ impl Hittable for Sphere {
             self.center + vec3!(self.radius, self.radius, self.radius),
         ))
     }
+
+    fn box_clone(&self) -> Box<dyn Hittable> {
+        Box::new(*self)
+    }
 }

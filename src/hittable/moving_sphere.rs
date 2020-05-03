@@ -125,4 +125,8 @@ impl Hittable for MovingSphere {
         );
         Some(AABB::surrounding_box(box0, box1))
     }
+
+    fn box_clone(&self) -> Box<dyn Hittable> {
+        Box::new(*self)
+    }
 }

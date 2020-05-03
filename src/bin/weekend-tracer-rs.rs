@@ -119,7 +119,7 @@ fn main() {
     let matches = app.get_matches();
 
     let world = World::random_scene(&mut rand::thread_rng());
-    let bvh = BVH::new(&mut rand::thread_rng(), world.objects, 0.0, 1.0);
+    let bvh = BVH::new(world.objects, 0.0, 1.0);
 
     let lookfrom = vec3!(13.0, 2.0, 3.0);
     let lookat = vec3!(0.0, 0.0, 0.0);

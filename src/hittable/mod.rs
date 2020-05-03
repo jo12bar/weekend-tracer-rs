@@ -77,4 +77,13 @@ pub trait Hittable: Send + Sync + core::fmt::Debug {
     /// - `None` if the bounding box couldn't be computed.
     /// - `Some(AABB)` if the bounding box was successfully computed.
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB>;
+
+    /// Clones the object into a Box<dyn Hittable>.
+    fn box_clone(&self) -> Box<dyn Hittable>;
+}
+
+impl Clone for Box<dyn Hittable> {
+    fn clone(&self) -> Self {
+        self.box_clone()
+    }
 }

@@ -8,13 +8,14 @@ use crate::{
     aabb::AABB,
     hittable::{HitRecord, Hittable},
     ray::Ray,
+    vec3,
+    vec3::Vec3,
 };
-use rand::Rng;
 
 /// A bounding volume heirarchy.
 ///
 /// Mainly based off of [this example](https://github.com/cbiffle/rtiow-rust/blob/master/src/bvh.rs).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BVH {
     pub bbox: AABB,
     pub size: usize,
@@ -24,54 +25,108 @@ pub struct BVH {
 /// A node in a bounding volume heirarchy. Can hold references to left and right
 /// children. The children should implement `Hittable`, which means that they
 /// could either be objects or they could be more `BVHNodes`, fog clouds, etc...
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BVHContents {
     Node { left: Box<BVH>, right: Box<BVH> },
     Leaf(Box<dyn Hittable>),
 }
 
 impl BVH {
-    /// Create a new `BVHNode`.
-    pub fn new<R: Rng + ?Sized>(
-        rng: &mut R,
-        mut objects: Vec<Box<dyn Hittable>>,
-        time0: f32,
-        time1: f32,
-    ) -> Self {
-        // Randomly choose an axis:
-        let axis: usize = rng.gen_range(0, 2);
+    /// Create a new `BVH`.
+    pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
+        fn inner(mut objects: Vec<Box<dyn Hittable>>, n: usize, time0: f32, time1: f32) -> BVH {
+            let mut boxes: Vec<AABB> = vec![AABB::new(vec3!(), vec3!()); n];
+            let mut left_area: Vec<f32> = vec![0.0; n];
+            let mut right_area: Vec<f32> = vec![0.0; n];
 
-        let comparator = match axis {
-            0 => box_x_compare,
-            1 => box_y_compare,
-            _ => box_z_compare,
-        };
+            let mut main_box: AABB = objects[0].bounding_box(time0, time1).unwrap();
+
+            // Get the AABB that encompasses all objects:
+            for obj in objects.iter().skip(1) {
+                let new_box = obj.bounding_box(time0, time1).unwrap();
+                main_box = AABB::surrounding_box(new_box, main_box);
+            }
+
+            // Get longest axis:
+            // 0 == x, 1 == y, 2 == z.
+            let axis = main_box.longest_axis();
+
+            // Sort objects by bounds on longest axis:
+            match axis {
+                0 => objects.sort_unstable_by(|a, b| box_x_compare(a.as_ref(), b.as_ref())),
+                1 => objects.sort_unstable_by(|a, b| box_y_compare(a.as_ref(), b.as_ref())),
+                _ => objects.sort_unstable_by(|a, b| box_z_compare(a.as_ref(), b.as_ref())),
+            }
+
+            // Get all the bounding boxes:
+            for i in 0..n {
+                boxes[i] = objects[i].bounding_box(time0, time1).unwrap();
+            }
+
+            // Get culmultative areas starting with left-most box:
+            left_area[0] = boxes[0].area();
+            let mut left_box: AABB = boxes[0];
+
+            for i in 1..(n - 1) {
+                left_box = AABB::surrounding_box(left_box, boxes[i]);
+                left_area[i] = left_box.area();
+            }
+
+            // Get culmultative area starting with right-most box:
+            right_area[n - 1] = boxes[n - 1].area();
+            let mut right_box = boxes[n - 1];
+
+            for i in (1..=(n - 2)).rev() {
+                right_box = AABB::surrounding_box(right_box, boxes[i]);
+                right_area[i] = right_box.area();
+            }
+
+            // Compute minimum surface-area-hueristic (SAH):
+            let mut min_sah = f32::MAX;
+            let mut min_sah_idx = usize::MAX;
+            for i in 0..(n - 1) {
+                let sah = (i as f32) * left_area[i] + ((n - i - 1) as f32) * right_area[i + 1];
+                if sah < min_sah {
+                    min_sah_idx = i;
+                    min_sah = sah;
+                }
+            }
+
+            let left = if min_sah_idx == 0 {
+                BVH::new(vec![objects[0].clone()], time0, time1)
+            } else {
+                inner(objects.clone(), min_sah_idx + 1, time0, time1)
+            };
+
+            let right = if min_sah_idx == n - 2 {
+                BVH::new(vec![objects[min_sah_idx + 1].clone()], time0, time1)
+            } else {
+                inner(
+                    objects.clone().drain((min_sah_idx + 1)..).collect(),
+                    n - min_sah_idx - 1,
+                    time0,
+                    time1,
+                )
+            };
+
+            BVH {
+                bbox: main_box,
+                size: left.size + right.size,
+                contents: BVHContents::Node {
+                    left: Box::new(left),
+                    right: Box::new(right),
+                },
+            }
+        }
 
         match objects.len() {
-            0 => panic!("Can't create a BVH from zero objects."),
+            0 => panic!("Can't create a BVH out of zero objects!"),
             1 => Self {
                 bbox: objects[0].bounding_box(time0, time1).unwrap(),
                 size: 1,
                 contents: BVHContents::Leaf(objects.pop().unwrap()),
             },
-            _ => {
-                objects.sort_unstable_by(|a, b| comparator(a.as_ref(), b.as_ref()));
-
-                // Divide objects in two:
-                let right = Box::new(BVH::new(
-                    rng,
-                    objects.drain(objects.len() / 2..).collect(),
-                    time0,
-                    time1,
-                ));
-                let left = Box::new(BVH::new(rng, objects, time0, time1));
-
-                BVH {
-                    bbox: AABB::surrounding_box(left.bbox, right.bbox),
-                    size: left.size + right.size,
-                    contents: BVHContents::Node { left, right },
-                }
-            }
+            n => inner(objects, n, time0, time1),
         }
     }
 }
@@ -113,6 +168,10 @@ impl Hittable for BVH {
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(self.bbox)
+    }
+
+    fn box_clone(&self) -> Box<dyn Hittable> {
+        Box::new(self.clone())
     }
 }
 

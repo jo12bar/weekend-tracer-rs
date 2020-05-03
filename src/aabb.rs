@@ -70,4 +70,44 @@ impl AABB {
 
         true
     }
+
+    /// Returns the number of the longest axis in the box.
+    ///
+    /// - `0` = x-axis
+    /// - `1` = y-axis
+    /// - `2` = z-axis
+    pub fn longest_axis(&self) -> usize {
+        let mut ranges = [
+            (0, self.axis_range(0)),
+            (1, self.axis_range(1)),
+            (2, self.axis_range(2)),
+        ];
+        // Note reversed comparison function, to sort from greatest to least:
+        ranges.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+        ranges[0].0
+    }
+
+    /// Returns the range of an axis in the box.
+    ///
+    /// - `0` = x-axis
+    /// - `1` = y-axis
+    /// - `2` = z-axis
+    pub fn axis_range(&self, axis: usize) -> f32 {
+        let min_vec: [f32; 3] = self.min.into();
+        let max_vec: [f32; 3] = self.max.into();
+
+        let min = min_vec[axis].min(max_vec[axis]);
+        let max = min_vec[axis].max(max_vec[axis]);
+
+        max - min
+    }
+
+    /// Returns the surface area of a box.
+    pub fn area(&self) -> f32 {
+        let x = self.axis_range(0);
+        let y = self.axis_range(1);
+        let z = self.axis_range(2);
+        2.0 * (x * y + x * z + y * z)
+    }
 }

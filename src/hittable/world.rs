@@ -11,7 +11,7 @@ use rand::Rng;
 /// The world that needs to be rendered, with all of its objects. Every object
 /// needs to implement `Hittable`. Coincidentally, this struct *also* implements
 /// `Hittable`.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct World {
     pub objects: Vec<Box<dyn Hittable>>,
 }
@@ -151,6 +151,10 @@ impl Hittable for World {
         }
 
         Some(output_box)
+    }
+
+    fn box_clone(&self) -> Box<dyn Hittable> {
+        Box::new(self.clone())
     }
 }
 
