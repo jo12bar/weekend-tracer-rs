@@ -21,3 +21,7 @@ rand_chacha = "0.2.2"
 [features]
 default = ["gui-support"]
 gui-support = ["minifb"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
