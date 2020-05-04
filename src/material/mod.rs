@@ -5,7 +5,7 @@ pub mod dielectric;
 pub mod lambertian;
 pub mod metal;
 
-use crate::{hittable::HitRecord, ray::Ray, vec3::Vec3};
+use crate::{hittable::HitRecord, ray::Ray, texture::Texture, vec3::Vec3};
 use rand::Rng;
 
 /// A scattered ray and its attenuation.
@@ -35,7 +35,7 @@ pub enum Material {
 
 impl Material {
     /// Create a new lambertian material.
-    pub fn lambertian(albedo: Vec3) -> Material {
+    pub fn lambertian(albedo: Texture) -> Material {
         Material::Lambertian(lambertian::Lambertian::new(albedo))
     }
 

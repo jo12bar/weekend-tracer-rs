@@ -2,7 +2,7 @@
 
 use crate::{
     aabb::AABB,
-    hittable::{HitRecord, Hittable},
+    hittable::{get_sphere_uv, HitRecord, Hittable},
     material::Material,
     ray::Ray,
     vec3,
@@ -105,6 +105,7 @@ impl Hittable for MovingSphere {
                     hit_point,
                     (hit_point - self.center(ray.time)) / self.radius,
                     self.material,
+                    get_sphere_uv(hit_point - self.center(ray.time) / self.radius),
                 ))
             } else {
                 None

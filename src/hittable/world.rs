@@ -30,7 +30,7 @@ impl World {
         objects.push(Box::new(Sphere::new(
             vec3!(0.0, -1000.0, 0.0),
             1000.0,
-            Material::lambertian(vec3!(0.5, 0.5, 0.5)),
+            Material::lambertian(vec3!(0.5, 0.5, 0.5).into()),
         )));
 
         // Random small spheres:
@@ -48,7 +48,7 @@ impl World {
                     let material = if choose_mat < 0.8 {
                         // Diffuse
                         let albedo = Vec3::random(rng) * Vec3::random(rng);
-                        Material::lambertian(albedo)
+                        Material::lambertian(albedo.into())
                     } else if choose_mat < 0.95 {
                         // Metal
                         let albedo = Vec3::random_range(rng, 0.5, 1.0);
@@ -90,7 +90,7 @@ impl World {
         objects.push(Box::new(Sphere::new(
             vec3!(-4.0, 1.0),
             1.0,
-            Material::lambertian(vec3!(0.4, 0.2, 0.1)),
+            Material::lambertian(vec3!(0.4, 0.2, 0.1).into()),
         )));
 
         // Large metal ball:

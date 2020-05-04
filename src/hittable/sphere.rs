@@ -1,7 +1,7 @@
 //! Structs and methods for working with `Hittable` spheres.
 
 use crate::aabb::AABB;
-use crate::hittable::{HitRecord, Hittable};
+use crate::hittable::{get_sphere_uv, HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3;
@@ -59,6 +59,7 @@ impl Hittable for Sphere {
                     hit_point,
                     (hit_point - self.center) / self.radius,
                     self.material,
+                    get_sphere_uv((hit_point - self.center) / self.radius),
                 ))
             } else {
                 None

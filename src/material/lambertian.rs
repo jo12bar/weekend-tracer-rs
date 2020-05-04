@@ -1,17 +1,17 @@
 //! A Lambertian diffuse material.
 
-use crate::{hittable::HitRecord, material::Scatter, ray::Ray, vec3::Vec3};
+use crate::{hittable::HitRecord, material::Scatter, ray::Ray, texture::Texture, vec3::Vec3};
 use rand::Rng;
 
 /// A Lambertian diffuse material. Attenuation is adjustable via the `abedo`
 /// property.
 #[derive(Copy, Clone, Debug)]
 pub struct Lambertian {
-    albedo: Vec3,
+    albedo: Texture,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Vec3) -> Self {
+    pub fn new(albedo: Texture) -> Self {
         Self { albedo }
     }
 
@@ -23,7 +23,7 @@ impl Lambertian {
     ) -> Option<Scatter> {
         let scatter_direction = rec.normal + Vec3::random_unit_vector(rng);
         let scattered = Ray::new(rec.hit_point, scatter_direction, ray_in.time);
-        let attenuation = self.albedo;
+        let attenuation = self.albedo.value(rec.uv, &rec.hit_point);
 
         Some(Scatter::new(attenuation, scattered))
     }

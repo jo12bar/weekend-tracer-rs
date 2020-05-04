@@ -7,7 +7,24 @@ pub mod world;
 use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::vec3::Vec3;
+use crate::vec3::{Axis::*, Vec3};
+
+/// (u, v) surface coordinates for some `Hittable` that has a surface.
+pub type UVCoord = (f32, f32);
+
+/// Gets the (u, v) surface coordinates for a sphere, given a point on the
+/// sphere's surface.
+pub fn get_sphere_uv(point: Vec3) -> UVCoord {
+    use std::f32::consts::PI;
+    let phi = point[Z].atan2(point[X]);
+    let theta = point[Y].asin();
+    (
+        // u:
+        1.0 - (phi + PI) / (2.0 * PI),
+        // v:
+        (theta + PI / 2.0) / PI,
+    )
+}
 
 /// A utility struct for recording that a ray hit a point on a `Hittable` object.
 #[derive(Copy, Clone, Debug)]
@@ -22,6 +39,8 @@ pub struct HitRecord {
     pub front_face: bool,
     /// The material that got hit.
     pub material: Material,
+    /// The (u, v) surface coordinates of the hit point.
+    pub uv: UVCoord,
 }
 
 impl HitRecord {
@@ -35,6 +54,7 @@ impl HitRecord {
         hit_point: Vec3,
         outward_normal: Vec3,
         material: Material,
+        uv: UVCoord,
     ) -> HitRecord {
         let (front_face, normal) = if ray.direction.dot(&outward_normal) < 0.0 {
             // The ray hit the outside of the surface
@@ -50,6 +70,7 @@ impl HitRecord {
             normal,
             front_face,
             material,
+            uv,
         }
     }
 }
