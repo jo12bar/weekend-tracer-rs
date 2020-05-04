@@ -4,7 +4,11 @@
 //! intersects a certain area. The "slab" method is used, which allows us to
 //! just compare intervals.
 
-use crate::{ray::Ray, vec3, vec3::Vec3};
+use crate::{
+    ray::Ray,
+    vec3,
+    vec3::{Axis, Axis::*, Vec3},
+};
 
 /// An axis-aligned bounding box. The two corners are specified with the `min`
 /// and `max` vectors.
@@ -28,33 +32,28 @@ impl AABB {
     /// Computes the bounding box of two bounding boxes.
     pub fn surrounding_box(box0: AABB, box1: AABB) -> AABB {
         let small = vec3!(
-            box0.min.x.min(box1.min.x),
-            box0.min.y.min(box1.min.y),
-            box0.min.z.min(box1.min.z),
+            box0.min[X].min(box1.min[X]),
+            box0.min[Y].min(box1.min[Y]),
+            box0.min[Z].min(box1.min[Z]),
         );
         let large = vec3!(
-            box0.max.x.max(box1.max.x),
-            box0.max.y.max(box1.max.y),
-            box0.max.z.max(box1.max.z),
+            box0.max[X].max(box1.max[X]),
+            box0.max[Y].max(box1.max[Y]),
+            box0.max[Z].max(box1.max[Z]),
         );
         AABB::new(small, large)
     }
 
     /// Test if a ray hits the bounding box at some point.
     pub fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
-        let direction: [f32; 3] = ray.direction.into();
-        let origin: [f32; 3] = ray.origin.into();
-        let min: [f32; 3] = self.min.into();
-        let max: [f32; 3] = self.max.into();
-
         let mut tmin = tmin;
         let mut tmax = tmax;
 
         // Loop through each of the three components.
         for i in 0..3 {
-            let inv_d = 1.0 / direction[i];
-            let mut t0 = (min[i] - origin[i]) * inv_d;
-            let mut t1 = (max[i] - origin[i]) * inv_d;
+            let inv_d = 1.0 / ray.direction[i];
+            let mut t0 = (self.min[i] - ray.origin[i]) * inv_d;
+            let mut t1 = (self.max[i] - ray.origin[i]) * inv_d;
 
             if inv_d < 0.0 {
                 std::mem::swap(&mut t0, &mut t1);
@@ -71,16 +70,12 @@ impl AABB {
         true
     }
 
-    /// Returns the number of the longest axis in the box.
-    ///
-    /// - `0` = x-axis
-    /// - `1` = y-axis
-    /// - `2` = z-axis
-    pub fn longest_axis(&self) -> usize {
+    /// Returns the longest axis in the box.
+    pub fn longest_axis(&self) -> Axis {
         let mut ranges = [
-            (0, self.axis_range(0)),
-            (1, self.axis_range(1)),
-            (2, self.axis_range(2)),
+            (X, self.axis_range(X)),
+            (Y, self.axis_range(Y)),
+            (Z, self.axis_range(Z)),
         ];
         // Note reversed comparison function, to sort from greatest to least:
         ranges.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
@@ -89,25 +84,18 @@ impl AABB {
     }
 
     /// Returns the range of an axis in the box.
-    ///
-    /// - `0` = x-axis
-    /// - `1` = y-axis
-    /// - `2` = z-axis
-    pub fn axis_range(&self, axis: usize) -> f32 {
-        let min_vec: [f32; 3] = self.min.into();
-        let max_vec: [f32; 3] = self.max.into();
-
-        let min = min_vec[axis].min(max_vec[axis]);
-        let max = min_vec[axis].max(max_vec[axis]);
+    pub fn axis_range(&self, axis: Axis) -> f32 {
+        let min = self.min[axis].min(self.max[axis]);
+        let max = self.min[axis].max(self.max[axis]);
 
         max - min
     }
 
     /// Returns the surface area of a box.
     pub fn area(&self) -> f32 {
-        let x = self.axis_range(0);
-        let y = self.axis_range(1);
-        let z = self.axis_range(2);
+        let x = self.axis_range(X);
+        let y = self.axis_range(Y);
+        let z = self.axis_range(Z);
         2.0 * (x * y + x * z + y * z)
     }
 }

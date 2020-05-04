@@ -5,7 +5,7 @@ use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::clamp;
 use crate::vec3;
-use crate::vec3::Vec3;
+use crate::vec3::{Axis::*, Channel::*, Vec3};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
@@ -43,7 +43,7 @@ fn ray_color<R: Rng + ?Sized>(rng: &mut R, ray: &Ray, bvh: &BVH, reflection_dept
         // Didn't hit anything! Just render the sky by blending blue and white
         // linearly based on the y-direction of the ray.
         let unit_direction = ray.direction.unit_vector();
-        let t = 0.5 * (unit_direction.y + 1.0);
+        let t = 0.5 * (unit_direction[Y] + 1.0);
 
         // Linearly blend white and light blue.
         ((1.0 - t) * vec3!(1.0, 1.0, 1.0)) + (t * vec3!(0.5, 0.7, 1.0))
@@ -90,9 +90,9 @@ pub fn render(
             // Divide the color total by the number of samples and gamma-correct
             // for a gamma value of 2.0.
             let scale = 1.0 / (samples_per_pixel as f32);
-            let r = (scale * color.x).sqrt();
-            let g = (scale * color.y).sqrt();
-            let b = (scale * color.z).sqrt();
+            let r = (scale * color[R]).sqrt();
+            let g = (scale * color[G]).sqrt();
+            let b = (scale * color[B]).sqrt();
 
             let ir = (256.0 * clamp(r, 0.0, 0.999)) as u32;
             let ig = (256.0 * clamp(g, 0.0, 0.999)) as u32;

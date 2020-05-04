@@ -1,16 +1,20 @@
 //! Structs and methods related to operating on 3D vectors.
 
-use rand::Rng;
+use rand::prelude::*;
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 /// A 3D vector. Could be utilized for points, colours, actual vectors, etc...
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
+///
+/// To access colors, you can do:
+///
+/// 1. Tuple-style: `v.0`, `v.1`, `v.2`
+/// 2. Using the `Axis` enum: `v[X]`. `v[Y]`. `v[Z]`. This requires a `use
+///    weekend_tracer_rs::vec3::Axis::*;` statement.
+/// 3. Using the `Channel` enum: `v[R]`, `v[G]`, `v[B]`. This requires a `use
+///    weekend_tracer_rs::vec3::Channel::*;` statement.
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct Vec3(pub f32, pub f32, pub f32);
 
 impl Vec3 {
     /// Create a new 3D vector.
@@ -21,13 +25,14 @@ impl Vec3 {
     /// use weekend_tracer_rs::vec3::Vec3;
     /// use weekend_tracer_rs::vec3;
     ///
-    /// assert_eq!(vec3!(), Vec3::new(0.0, 0.0, 0.0));
-    /// assert_eq!(vec3!(1.0), Vec3::new(1.0, 0.0, 0.0));
-    /// assert_eq!(vec3!(1.0, -3.0), Vec3::new(1.0, -3.0, 0.0));
-    /// assert_eq!(vec3!(1.0, -3.0, 4.3), Vec3::new(1.0, -3.0, 4.3));
+    /// assert_eq!(vec3!(), Vec3(0.0, 0.0, 0.0));
+    /// assert_eq!(vec3!(1.0), Vec3(1.0, 0.0, 0.0));
+    /// assert_eq!(vec3!(1.0, -3.0), Vec3(1.0, -3.0, 0.0));
+    /// assert_eq!(vec3!(1.0, -3.0, 4.3), Vec3(1.0, -3.0, 4.3));
     /// ```
+    #[inline]
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
-        Vec3 { x, y, z }
+        Vec3(x, y, z)
     }
 
     /// Create some random vector, where each component ranges from [0, 1).
@@ -56,11 +61,7 @@ impl Vec3 {
     /// );
     /// ```
     pub fn random<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        Vec3 {
-            x: rng.gen(),
-            y: rng.gen(),
-            z: rng.gen(),
-        }
+        Vec3(rng.gen(), rng.gen(), rng.gen())
     }
 
     /// Create some random vector, where each component ranges from [`min`, `max`).
@@ -88,11 +89,11 @@ impl Vec3 {
     ///     ),
     /// );
     pub fn random_range<R: Rng + ?Sized>(rng: &mut R, min: f32, max: f32) -> Self {
-        Vec3 {
-            x: rng.gen_range(min, max),
-            y: rng.gen_range(min, max),
-            z: rng.gen_range(min, max),
-        }
+        Vec3(
+            rng.gen_range(min, max),
+            rng.gen_range(min, max),
+            rng.gen_range(min, max),
+        )
     }
 
     /// Generate a random vector within the unit radius sphere.
@@ -128,7 +129,7 @@ impl Vec3 {
     /// );
     /// ```
     pub fn random_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        let mut vector = Vec3::new(1.0, 1.0, 1.0);
+        let mut vector = Vec3(1.0, 1.0, 1.0);
 
         while vector.length_squared() >= 1.0 {
             vector = Vec3::random_range(rng, -1.0, 1.0);
@@ -168,11 +169,7 @@ impl Vec3 {
         let z: f32 = rng.gen_range(-1.0, 1.0);
         let radius = (1.0 - z * z).sqrt();
 
-        Vec3 {
-            x: radius * angle.cos(),
-            y: radius * angle.sin(),
-            z,
-        }
+        Vec3(radius * angle.cos(), radius * angle.sin(), z)
     }
 
     /// Generate a random vector contained within the unit hemisphere
@@ -227,7 +224,7 @@ impl Vec3 {
     /// ```
     /// use rand::{Rng, SeedableRng};
     /// use rand_chacha::ChaCha8Rng;
-    /// use weekend_tracer_rs::vec3::Vec3;
+    /// use weekend_tracer_rs::vec3::{Vec3, Axis::*};
     ///
     /// // This is just so we can have a reproducible source of random numbers
     /// // for testing purposes. You should probably use `rand::thread_rng()`
@@ -237,9 +234,9 @@ impl Vec3 {
     /// let a = Vec3::random_in_unit_disk(&mut rng);
     ///
     /// assert!(a.length_squared() < 1.0);
-    /// assert!(a.x >= -1.0 && a.x < 1.0);
-    /// assert!(a.y >= -1.0 && a.y < 1.0);
-    /// assert_eq!(a.z, 0.0);
+    /// assert!(a[X] >= -1.0 && a[X] < 1.0);
+    /// assert!(a[Y] >= -1.0 && a[Y] < 1.0);
+    /// assert_eq!(a[Z], 0.0);
     ///
     /// assert_eq!(
     ///     a,
@@ -247,10 +244,10 @@ impl Vec3 {
     /// )
     /// ```
     pub fn random_in_unit_disk<R: Rng + ?Sized>(rng: &mut R) -> Vec3 {
-        let mut p = Vec3::new(1.0, 1.0, 0.0);
+        let mut p = Vec3(1.0, 1.0, 0.0);
 
         while p.length_squared() >= 1.0 {
-            p = Vec3::new(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0);
+            p = Vec3(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0);
         }
 
         p
@@ -265,7 +262,7 @@ impl Vec3 {
     /// assert_eq!(a.length_squared(), 3.0);
     /// ```
     pub fn length_squared(&self) -> f32 {
-        (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
+        (self.0 * self.0) + (self.1 * self.1) + (self.2 * self.2)
     }
 
     /// Returns the length of the vector.
@@ -293,7 +290,7 @@ impl Vec3 {
     /// assert_eq!(b.dot(&a), -22.7);
     /// ```
     pub fn dot(&self, other: &Self) -> f32 {
-        (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+        (self.0 * other.0) + (self.1 * other.1) + (self.2 * other.2)
     }
 
     /// Computes the [cross product](https://en.wikipedia.org/wiki/Cross_product)
@@ -309,11 +306,11 @@ impl Vec3 {
     /// assert_eq!(b.cross(&a), Vec3::new(27.2, 15.1, 1.0));
     /// ```
     pub fn cross(&self, rhs: &Self) -> Self {
-        Vec3 {
-            x: (self.y * rhs.z) - (self.z * rhs.y),
-            y: -((self.x * rhs.z) - (self.z * rhs.x)),
-            z: (self.x * rhs.y) - (self.y * rhs.x),
-        }
+        Vec3(
+            (self.1 * rhs.2) - (self.2 * rhs.1),
+            -((self.0 * rhs.2) - (self.2 * rhs.0)),
+            (self.0 * rhs.1) - (self.1 * rhs.0),
+        )
     }
 
     /// Returns the "unit vector version" of the original vector, which:
@@ -340,11 +337,11 @@ impl Vec3 {
     /// ```
     pub fn unit_vector(&self) -> Self {
         let inverse_length = 1.0 / self.length();
-        Vec3 {
-            x: self.x * inverse_length,
-            y: self.y * inverse_length,
-            z: self.z * inverse_length,
-        }
+        Vec3(
+            self.0 * inverse_length,
+            self.1 * inverse_length,
+            self.2 * inverse_length,
+        )
     }
 
     /// Reflect a vector off of a surface, based on the normal vector to that
@@ -374,7 +371,7 @@ impl Vec3 {
     /// # Usage
     ///
     /// ```
-    /// use weekend_tracer_rs::vec3::Vec3;
+    /// use weekend_tracer_rs::vec3::{Vec3, Axis::*};
     ///
     /// let a = Vec3::new(1.0, 0.0, 0.0);
     /// let norm = Vec3::new(1.0, 0.0, 2.0);
@@ -382,9 +379,9 @@ impl Vec3 {
     ///
     /// // We have to check each component here due to floating-point rounding
     /// // errors.
-    /// assert!(refracted.x > -0.601 && refracted.x < -0.599);
-    /// assert!(refracted.y > -0.001 && refracted.y < 0.001);
-    /// assert!(refracted.z > -2.001 && refracted.z < -1.999);
+    /// assert!(refracted[X] > -0.601 && refracted[X] < -0.599);
+    /// assert!(refracted[Y] > -0.001 && refracted[Y] < 0.001);
+    /// assert!(refracted[Z] > -2.001 && refracted[Z] < -1.999);
     /// ```
     pub fn refract(&self, normal: &Vec3, etai_over_etat: f32) -> Vec3 {
         let cos_theta = normal.dot(&(-(*self)));
@@ -395,90 +392,78 @@ impl Vec3 {
     }
 }
 
+/// Broadcasts a single value to all vector lanes.
+impl From<f32> for Vec3 {
+    #[inline]
+    fn from(v: f32) -> Self {
+        Self(v, v, v)
+    }
+}
+
 impl Add for Vec3 {
     type Output = Self;
     fn add(self, other: Self) -> Self {
-        Vec3 {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
+        Vec3(self.0 + other.0, self.1 + other.1, self.2 + other.2)
     }
 }
 
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, other: Self) {
-        self.x += other.x;
-        self.y += other.y;
-        self.z += other.z;
+        self.0 += other.0;
+        self.1 += other.1;
+        self.2 += other.2;
     }
 }
 
 impl Sub for Vec3 {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
-        Vec3 {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
+        Vec3(self.0 - other.0, self.1 - other.1, self.2 - other.2)
     }
 }
 
 impl SubAssign for Vec3 {
     fn sub_assign(&mut self, other: Self) {
-        self.x -= other.x;
-        self.y -= other.y;
-        self.z -= other.z;
+        self.0 -= other.0;
+        self.1 -= other.1;
+        self.2 -= other.2;
     }
 }
 
 impl Mul<Vec3> for f32 {
     type Output = Vec3;
     fn mul(self, vec: Vec3) -> Vec3 {
-        Vec3 {
-            x: self * vec.x,
-            y: self * vec.y,
-            z: self * vec.z,
-        }
+        Vec3(self * vec.0, self * vec.1, self * vec.2)
     }
 }
 
 impl Mul<f32> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self {
-        Vec3 {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-        }
+        Vec3(self.0 * rhs, self.1 * rhs, self.2 * rhs)
     }
 }
 
 impl Mul for Vec3 {
     type Output = Self;
     fn mul(self, other: Self) -> Self {
-        Vec3 {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-        }
+        Vec3(self.0 * other.0, self.1 * other.1, self.2 * other.2)
     }
 }
 
 impl MulAssign<f32> for Vec3 {
     fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
+        self.0 *= rhs;
+        self.1 *= rhs;
+        self.2 *= rhs;
     }
 }
 
 impl MulAssign for Vec3 {
     fn mul_assign(&mut self, rhs: Self) {
-        self.x *= rhs.x;
-        self.y *= rhs.y;
-        self.z *= rhs.z;
+        self.0 *= rhs.0;
+        self.1 *= rhs.1;
+        self.2 *= rhs.2;
     }
 }
 
@@ -498,26 +483,162 @@ impl DivAssign<f32> for Vec3 {
 impl Neg for Vec3 {
     type Output = Self;
     fn neg(self) -> Self {
-        Vec3 {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
+        Vec3(-self.0, -self.1, -self.2)
     }
 }
 
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<{}, {}, {}>", self.x, self.y, self.z)
+        write!(f, "<{}, {}, {}>", self.0, self.1, self.2)
     }
 }
 
-impl std::convert::From<Vec3> for [f32; 3] {
-    fn from(item: Vec3) -> Self {
-        [item.x, item.y, item.z]
+/// Allow accumulation of vectors from an iterator.
+impl std::iter::Sum for Vec3 {
+    #[inline]
+    fn sum<I>(iter: I) -> Self
+    where
+        I: Iterator<Item = Self>,
+    {
+        iter.fold(Vec3::default(), std::ops::Add::add)
     }
 }
 
+/// Allow `Vec3` to be produced by `rand::Rng::gen`.
+///
+/// The resulting vector has each component in the range [0, 1).
+impl Distribution<Vec3> for rand::distributions::Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        Vec3(rng.gen(), rng.gen(), rng.gen())
+    }
+}
+
+/// Names for vector lanes when used as a color.
+///
+/// `Vec3` has an `Index` impl for `Channel`, so you can use `Channel` values to
+/// select components from a `Vec3`:
+///
+/// ```
+/// use weekend_tracer_rs::vec3::{Vec3, Channel::*};
+///
+/// let v = Vec3(1.0, 2.0, 3.0);
+/// assert_eq!(v[R], 1.0);
+/// assert_eq!(v[G], 2.0);
+/// assert_eq!(v[B], 3.0);
+/// ```
+#[derive(Copy, Clone, Debug)]
+pub enum Channel {
+    /// Red.
+    R,
+    /// Green.
+    G,
+    /// Blue.
+    B,
+}
+
+use Channel::*;
+
+impl std::ops::Index<Channel> for Vec3 {
+    type Output = f32;
+
+    #[inline]
+    fn index(&self, idx: Channel) -> &Self::Output {
+        match idx {
+            R => &self.0,
+            G => &self.1,
+            B => &self.2,
+        }
+    }
+}
+
+impl std::ops::IndexMut<Channel> for Vec3 {
+    #[inline]
+    fn index_mut(&mut self, idx: Channel) -> &mut Self::Output {
+        match idx {
+            R => &mut self.0,
+            G => &mut self.1,
+            B => &mut self.2,
+        }
+    }
+}
+
+/// Names for vector lanes when used as a coordinate.
+///
+/// `Vec3` has an `Index` impl for `Axis`, so you can use `Axis` values to
+/// select components from a `Vec3`:
+///
+/// ```
+/// use weekend_tracer_rs::vec3::{Vec3, Axis::*};
+///
+/// let v = Vec3(1.0, 2.0, 3.0);
+/// assert_eq!(v[X], 1.0);
+/// assert_eq!(v[Y], 2.0);
+/// assert_eq!(v[Z], 3.0);
+/// ```
+#[derive(Copy, Clone, Debug)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+use Axis::*;
+
+impl std::ops::Index<Axis> for Vec3 {
+    type Output = f32;
+
+    #[inline]
+    fn index(&self, idx: Axis) -> &Self::Output {
+        match idx {
+            X => &self.0,
+            Y => &self.1,
+            Z => &self.2,
+        }
+    }
+}
+
+impl std::ops::IndexMut<Axis> for Vec3 {
+    #[inline]
+    fn index_mut(&mut self, idx: Axis) -> &mut Self::Output {
+        match idx {
+            X => &mut self.0,
+            Y => &mut self.1,
+            Z => &mut self.2,
+        }
+    }
+}
+
+impl std::ops::Index<usize> for Vec3 {
+    type Output = f32;
+
+    #[inline]
+    fn index(&self, idx: usize) -> &Self::Output {
+        match idx {
+            0 => &self.0,
+            1 => &self.1,
+            2 => &self.2,
+            i => panic!(
+                "Out of bounds index access on Vec3! Tried to access index {}.",
+                i
+            ),
+        }
+    }
+}
+
+impl std::ops::IndexMut<usize> for Vec3 {
+    #[inline]
+    fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
+        match idx {
+            0 => &mut self.0,
+            1 => &mut self.1,
+            2 => &mut self.2,
+            i => panic!(
+                "Out of bounds index access on Vec3! Tried to access index {}.",
+                i
+            ),
+        }
+    }
+}
 /// A convenience macro for more easily building `Vec3`'s. Use it like this:
 ///
 /// ```
@@ -532,16 +653,16 @@ impl std::convert::From<Vec3> for [f32; 3] {
 #[macro_export]
 macro_rules! vec3 {
     () => {
-        Vec3::new(0.0, 0.0, 0.0)
+        Vec3(0.0, 0.0, 0.0)
     };
     ($x:expr $(,)?) => {
-        Vec3::new($x, 0.0, 0.0)
+        Vec3($x, 0.0, 0.0)
     };
     ($x:expr, $y:expr $(,)?) => {
-        Vec3::new($x, $y, 0.0)
+        Vec3($x, $y, 0.0)
     };
     ($x:expr, $y:expr, $z:expr $(,)?) => {
-        Vec3::new($x, $y, $z)
+        Vec3($x, $y, $z)
     };
 }
 
@@ -551,18 +672,11 @@ mod tests {
 
     #[test]
     fn macro_invocation() {
-        assert_eq!(vec3!(4.0, 2.0, 1.0), Vec3::new(4.0, 2.0, 1.0));
-        assert_eq!(
-            vec3!(3.5, 64.2, -13.0),
-            Vec3 {
-                x: 3.5,
-                y: 64.2,
-                z: -13.0
-            }
-        );
-        assert_eq!(vec3!(), Vec3::new(0.0, 0.0, 0.0));
-        assert_eq!(vec3!(-1.1), Vec3::new(-1.1, 0.0, 0.0));
-        assert_eq!(vec3!(20.3, -5.6), Vec3::new(20.3, -5.6, 0.0));
+        assert_eq!(vec3!(4.0, 2.0, 1.0), Vec3(4.0, 2.0, 1.0));
+        assert_eq!(vec3!(3.5, 64.2, -13.0), Vec3(3.5, 64.2, -13.0));
+        assert_eq!(vec3!(), Vec3(0.0, 0.0, 0.0));
+        assert_eq!(vec3!(-1.1), Vec3(-1.1, 0.0, 0.0));
+        assert_eq!(vec3!(20.3, -5.6), Vec3(20.3, -5.6, 0.0));
     }
 
     #[test]
@@ -578,14 +692,7 @@ mod tests {
         let mut a = vec3!();
         let b = vec3!(1.0, -8.8, 3.8);
         a += b;
-        assert_eq!(
-            a,
-            Vec3 {
-                x: 1.0,
-                y: -8.8,
-                z: 3.8
-            }
-        );
+        assert_eq!(a, Vec3(1.0, -8.8, 3.8));
     }
 
     #[test]
@@ -601,14 +708,7 @@ mod tests {
         let mut a = vec3!();
         let b = vec3!(1.0, -8.8, 3.8);
         a -= b;
-        assert_eq!(
-            a,
-            Vec3 {
-                x: -1.0,
-                y: 8.8,
-                z: -3.8
-            }
-        );
+        assert_eq!(a, Vec3(-1.0, 8.8, -3.8));
     }
 
     #[test]

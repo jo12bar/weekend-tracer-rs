@@ -50,12 +50,8 @@ impl BVH {
         objects.sort_unstable_by(|a, b| {
             let a_bb = a.bounding_box(time0, time1).unwrap();
             let b_bb = b.bounding_box(time0, time1).unwrap();
-            let a_bb_min: [f32; 3] = a_bb.min.into();
-            let a_bb_max: [f32; 3] = a_bb.max.into();
-            let b_bb_min: [f32; 3] = b_bb.min.into();
-            let b_bb_max: [f32; 3] = b_bb.max.into();
-            let a_2centroid = a_bb_min[axis] + a_bb_max[axis];
-            let b_2centroid = b_bb_min[axis] + b_bb_max[axis];
+            let a_2centroid = a_bb.min[axis] + a_bb.max[axis];
+            let b_2centroid = b_bb.min[axis] + b_bb.max[axis];
             a_2centroid.partial_cmp(&b_2centroid).unwrap()
         });
 

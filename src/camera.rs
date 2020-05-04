@@ -1,6 +1,11 @@
 //! A camera for viewing our world.
 
-use crate::{ray::Ray, util::deg_to_rad, vec3, vec3::Vec3};
+use crate::{
+    ray::Ray,
+    util::deg_to_rad,
+    vec3,
+    vec3::{Axis::*, Vec3},
+};
 use rand::Rng;
 
 /// A simple axis-aligned camera.
@@ -90,7 +95,7 @@ impl Camera {
     /// aperture of the camera and focal length.
     pub fn get_ray<R: Rng + ?Sized>(&self, rng: &mut R, s: f32, t: f32) -> Ray {
         let rd = self.lens_radius * Vec3::random_in_unit_disk(rng);
-        let offset = self.u * rd.x + self.v * rd.y;
+        let offset = self.u * rd[X] + self.v * rd[Y];
 
         // Send the ray out at a random time between time0 and time1:
         let time = if (self.time1 - self.time0).abs() < f32::EPSILON {
