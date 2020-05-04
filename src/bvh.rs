@@ -8,8 +8,6 @@ use crate::{
     aabb::AABB,
     hittable::{HitRecord, Hittable},
     ray::Ray,
-    vec3,
-    vec3::Vec3,
 };
 
 /// A bounding volume heirarchy.
@@ -33,100 +31,55 @@ pub enum BVHContents {
 
 impl BVH {
     /// Create a new `BVH`.
+    ///
+    /// Largely derived from Peter Shirley's implementation, but doesn't use
+    /// random axis selection, avoiding some pathological cases.
     pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
-        fn inner(mut objects: Vec<Box<dyn Hittable>>, n: usize, time0: f32, time1: f32) -> BVH {
-            let mut boxes: Vec<AABB> = vec![AABB::new(vec3!(), vec3!()); n];
-            let mut left_area: Vec<f32> = vec![0.0; n];
-            let mut right_area: Vec<f32> = vec![0.0; n];
+        // Find the bounding box that encompasses all objects
+        let bbox: AABB = objects
+            .iter()
+            .skip(1)
+            .fold(objects[0].bounding_box(time0, time1).unwrap(), |bb, obj| {
+                AABB::surrounding_box(bb, obj.bounding_box(time0, time1).unwrap())
+            });
 
-            let mut main_box: AABB = objects[0].bounding_box(time0, time1).unwrap();
+        // Find the biggest axis for this set of objects
+        let axis = bbox.longest_axis();
 
-            // Get the AABB that encompasses all objects:
-            for obj in objects.iter().skip(1) {
-                let new_box = obj.bounding_box(time0, time1).unwrap();
-                main_box = AABB::surrounding_box(new_box, main_box);
-            }
-
-            // Get longest axis:
-            // 0 == x, 1 == y, 2 == z.
-            let axis = main_box.longest_axis();
-
-            // Sort objects by bounds on longest axis:
-            match axis {
-                0 => objects.sort_unstable_by(|a, b| box_x_compare(a.as_ref(), b.as_ref())),
-                1 => objects.sort_unstable_by(|a, b| box_y_compare(a.as_ref(), b.as_ref())),
-                _ => objects.sort_unstable_by(|a, b| box_z_compare(a.as_ref(), b.as_ref())),
-            }
-
-            // Get all the bounding boxes:
-            for i in 0..n {
-                boxes[i] = objects[i].bounding_box(time0, time1).unwrap();
-            }
-
-            // Get culmultative areas starting with left-most box:
-            left_area[0] = boxes[0].area();
-            let mut left_box: AABB = boxes[0];
-
-            for i in 1..(n - 1) {
-                left_box = AABB::surrounding_box(left_box, boxes[i]);
-                left_area[i] = left_box.area();
-            }
-
-            // Get culmultative area starting with right-most box:
-            right_area[n - 1] = boxes[n - 1].area();
-            let mut right_box = boxes[n - 1];
-
-            for i in (1..=(n - 2)).rev() {
-                right_box = AABB::surrounding_box(right_box, boxes[i]);
-                right_area[i] = right_box.area();
-            }
-
-            // Compute minimum surface-area-hueristic (SAH):
-            let mut min_sah = f32::MAX;
-            let mut min_sah_idx = usize::MAX;
-            for i in 0..(n - 1) {
-                let sah = (i as f32) * left_area[i] + ((n - i - 1) as f32) * right_area[i + 1];
-                if sah < min_sah {
-                    min_sah_idx = i;
-                    min_sah = sah;
-                }
-            }
-
-            let left = if min_sah_idx == 0 {
-                BVH::new(vec![objects[0].clone()], time0, time1)
-            } else {
-                inner(objects.clone(), min_sah_idx + 1, time0, time1)
-            };
-
-            let right = if min_sah_idx == n - 2 {
-                BVH::new(vec![objects[min_sah_idx + 1].clone()], time0, time1)
-            } else {
-                inner(
-                    objects.clone().drain((min_sah_idx + 1)..).collect(),
-                    n - min_sah_idx - 1,
-                    time0,
-                    time1,
-                )
-            };
-
-            BVH {
-                bbox: main_box,
-                size: left.size + right.size,
-                contents: BVHContents::Node {
-                    left: Box::new(left),
-                    right: Box::new(right),
-                },
-            }
-        }
+        // Sort objects along longest axis by 2*centroid.
+        objects.sort_unstable_by(|a, b| {
+            let a_bb = a.bounding_box(time0, time1).unwrap();
+            let b_bb = b.bounding_box(time0, time1).unwrap();
+            let a_bb_min: [f32; 3] = a_bb.min.into();
+            let a_bb_max: [f32; 3] = a_bb.max.into();
+            let b_bb_min: [f32; 3] = b_bb.min.into();
+            let b_bb_max: [f32; 3] = b_bb.max.into();
+            let a_2centroid = a_bb_min[axis] + a_bb_max[axis];
+            let b_2centroid = b_bb_min[axis] + b_bb_max[axis];
+            a_2centroid.partial_cmp(&b_2centroid).unwrap()
+        });
 
         match objects.len() {
-            0 => panic!("Can't create a BVH out of zero objects!"),
+            0 => panic!("Can't create a BVH from zero objects!"),
             1 => Self {
-                bbox: objects[0].bounding_box(time0, time1).unwrap(),
+                bbox,
                 size: 1,
                 contents: BVHContents::Leaf(objects.pop().unwrap()),
             },
-            n => inner(objects, n, time0, time1),
+            _ => {
+                let right = Box::new(BVH::new(
+                    objects.drain(objects.len() / 2..).collect(),
+                    time0,
+                    time1,
+                ));
+                let left = Box::new(BVH::new(objects, time0, time1));
+
+                Self {
+                    bbox: AABB::surrounding_box(left.bbox, right.bbox),
+                    size: left.size + right.size,
+                    contents: BVHContents::Node { left, right },
+                }
+            }
         }
     }
 }
@@ -173,38 +126,4 @@ impl Hittable for BVH {
     fn box_clone(&self) -> Box<dyn Hittable> {
         Box::new(self.clone())
     }
-}
-
-/// Compares an axis of two bounding boxes.
-fn box_compare(a: &dyn Hittable, b: &dyn Hittable, axis: usize) -> std::cmp::Ordering {
-    let opt_box_a = a.bounding_box(0.0, 0.0);
-    let opt_box_b = b.bounding_box(0.0, 0.0);
-
-    match (opt_box_a, opt_box_b) {
-        (Some(box_a), Some(box_b)) => {
-            let a_min: [f32; 3] = box_a.min.into();
-            let b_min: [f32; 3] = box_b.min.into();
-
-            a_min[axis].partial_cmp(&b_min[axis]).unwrap()
-        }
-        (None, _) | (_, None) => {
-            eprintln!(
-                "Couldn't compute a bounding_box in BVH constructor. \
-                 Continuing on like nothing happened."
-            );
-            std::cmp::Ordering::Equal
-        }
-    }
-}
-
-fn box_x_compare(a: &dyn Hittable, b: &dyn Hittable) -> std::cmp::Ordering {
-    box_compare(a, b, 0)
-}
-
-fn box_y_compare(a: &dyn Hittable, b: &dyn Hittable) -> std::cmp::Ordering {
-    box_compare(a, b, 1)
-}
-
-fn box_z_compare(a: &dyn Hittable, b: &dyn Hittable) -> std::cmp::Ordering {
-    box_compare(a, b, 2)
 }
