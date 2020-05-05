@@ -8,6 +8,7 @@ use crate::{
     vec3,
     vec3::Vec3,
 };
+use std::sync::Arc;
 
 /// A linearly-moving sphere. Will move from `center0` at `time0` to `center1`
 /// at `time1`.
@@ -18,7 +19,7 @@ pub struct MovingSphere {
     pub time0: f32,
     pub time1: f32,
     pub radius: f32,
-    pub material: Material,
+    pub material: Arc<Material>,
 }
 
 impl MovingSphere {
@@ -37,7 +38,7 @@ impl MovingSphere {
             time0,
             time1,
             radius,
-            material,
+            material: Arc::new(material),
         }
     }
 

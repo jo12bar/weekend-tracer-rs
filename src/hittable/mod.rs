@@ -8,6 +8,7 @@ use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Axis::*, Vec3};
+use std::sync::Arc;
 
 /// (u, v) surface coordinates for some `Hittable` that has a surface.
 pub type UVCoord = (f32, f32);
@@ -38,7 +39,7 @@ pub struct HitRecord {
     /// Whether or not the hit was on the front face of the surface.
     pub front_face: bool,
     /// The material that got hit.
-    pub material: Material,
+    pub material: Arc<Material>,
     /// The (u, v) surface coordinates of the hit point.
     pub uv: UVCoord,
 }
@@ -53,7 +54,7 @@ impl HitRecord {
         t: f32,
         hit_point: Vec3,
         outward_normal: Vec3,
-        material: Material,
+        material: Arc<Material>,
         uv: UVCoord,
     ) -> HitRecord {
         let (front_face, normal) = if ray.direction.dot(&outward_normal) < 0.0 {

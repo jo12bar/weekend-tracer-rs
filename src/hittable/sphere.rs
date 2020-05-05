@@ -6,13 +6,14 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Vec3;
+use std::sync::Arc;
 
 /// A sphere. Can be hit with rays.
 #[derive(Debug, Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
-    pub material: Material,
+    pub material: Arc<Material>,
 }
 
 impl Sphere {
@@ -21,7 +22,7 @@ impl Sphere {
         Sphere {
             center,
             radius,
-            material,
+            material: Arc::new(material),
         }
     }
 }
