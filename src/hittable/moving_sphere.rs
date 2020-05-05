@@ -11,7 +11,7 @@ use crate::{
 
 /// A linearly-moving sphere. Will move from `center0` at `time0` to `center1`
 /// at `time1`.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct MovingSphere {
     pub center0: Vec3,
     pub center1: Vec3,
@@ -104,7 +104,7 @@ impl Hittable for MovingSphere {
                     t,
                     hit_point,
                     (hit_point - self.center(ray.time)) / self.radius,
-                    self.material,
+                    self.material.clone(),
                     get_sphere_uv(hit_point - self.center(ray.time) / self.radius),
                 ))
             } else {
@@ -128,6 +128,6 @@ impl Hittable for MovingSphere {
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {
-        Box::new(*self)
+        Box::new(self.clone())
     }
 }

@@ -8,7 +8,7 @@ use crate::vec3;
 use crate::vec3::Vec3;
 
 /// A sphere. Can be hit with rays.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
@@ -58,7 +58,7 @@ impl Hittable for Sphere {
                     t,
                     hit_point,
                     (hit_point - self.center) / self.radius,
-                    self.material,
+                    self.material.clone(),
                     get_sphere_uv((hit_point - self.center) / self.radius),
                 ))
             } else {
@@ -77,6 +77,6 @@ impl Hittable for Sphere {
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {
-        Box::new(*self)
+        Box::new(self.clone())
     }
 }

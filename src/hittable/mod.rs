@@ -27,7 +27,7 @@ pub fn get_sphere_uv(point: Vec3) -> UVCoord {
 }
 
 /// A utility struct for recording that a ray hit a point on a `Hittable` object.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct HitRecord {
     /// The point that got hit.
     pub hit_point: Vec3,

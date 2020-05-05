@@ -26,7 +26,7 @@ impl Scatter {
 
 /// A material. Each material will scatter incident light (and `Ray`'s) in
 /// different ways.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Material {
     Lambertian(lambertian::Lambertian),
     Metal(metal::Metal),
@@ -66,7 +66,7 @@ impl Material {
         ray: &Ray,
         rec: &HitRecord,
     ) -> Option<Scatter> {
-        match rec.material {
+        match &rec.material {
             Material::Lambertian(l) => l.scatter(rng, ray, rec),
             Material::Metal(m) => m.scatter(rng, ray, rec),
             Material::Dielectric(d) => d.scatter(rng, ray, rec),

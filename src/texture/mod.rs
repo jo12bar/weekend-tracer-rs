@@ -5,38 +5,32 @@
 //! module mostly contains functions that return `Texture` functions.
 
 pub mod constant;
+pub use constant::constant;
 
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;
+use std::sync::Arc;
 
-/// All textures should implement this trait for the sake of type-checking.
-pub trait TextureTrait {
-    /// Get the colour of a texture at surface coordinates (u, v) and point `point`.
-    fn value(&self, uv: UVCoord, point: &Vec3) -> Vec3;
-}
+/// A texture function. Takes in (u, v) surface coordinates the a hit point,
+/// and outputs the resulting colour of that point.
+#[derive(Clone)]
+pub struct Texture(pub Arc<dyn Fn(UVCoord, &Vec3) -> Vec3 + Send + Sync>);
 
-#[derive(Debug, Clone, Copy)]
-pub enum Texture {
-    Constant(constant::Constant),
-}
-
-impl Texture {
-    /// Create a constant-colour texture.
-    pub fn constant(color: Vec3) -> Self {
-        Self::Constant(constant::Constant::new(color))
-    }
-
-    /// Get the value of the texture at surface coordinate (u, v) and point `point`.
-    pub fn value(&self, uv: UVCoord, point: &Vec3) -> Vec3 {
-        match self {
-            Texture::Constant(c) => c.value(uv, point),
-        }
+/// Allows `Texture` to implement `Debug`.
+impl std::fmt::Debug for Texture {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Texture")
+            .field(&String::from(
+                "Arc<dyn Fn(UVCoord, Vec3) -> Vec3 + Send + Sync>",
+            ))
+            .finish()
     }
 }
 
-/// For Vec3's, just turn it directly into a constant-colour texture.
+/// Convert colours directly into a `constant` texture.
 impl From<Vec3> for Texture {
+    #[inline]
     fn from(v: Vec3) -> Self {
-        Self::constant(v)
+        constant(v)
     }
 }
