@@ -13,6 +13,9 @@ pub use checkerboard::checkerboard;
 pub mod perlin;
 pub use perlin::{perlin_noise, perlin_turbulence};
 
+pub mod marble;
+pub use marble::simple_marble;
+
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;
 use std::sync::Arc;

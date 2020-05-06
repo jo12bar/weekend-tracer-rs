@@ -79,7 +79,7 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let world = scenes::two_perlin_spheres();
+    let world = scenes::two_marble_ish_spheres();
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
     let lookfrom = vec3!(13.0, 2.0, 3.0);
