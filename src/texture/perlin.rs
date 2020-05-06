@@ -2,6 +2,7 @@
 
 use crate::{
     texture::Texture,
+    vec3,
     vec3::{Axis::*, Vec3},
 };
 use lazy_static::lazy_static;
@@ -12,7 +13,7 @@ use std::sync::Arc;
 const POINT_COUNT: usize = 256;
 
 lazy_static! {
-    static ref RANFLOAT: [f32; POINT_COUNT] = generate_floats(&mut thread_rng());
+    static ref RANVEC: [Vec3; POINT_COUNT] = generate_vectors(&mut thread_rng());
     static ref PERM_X: [u8; POINT_COUNT] = perlin_generate_perm(&mut thread_rng());
     static ref PERM_Y: [u8; POINT_COUNT] = perlin_generate_perm(&mut thread_rng());
     static ref PERM_Z: [u8; POINT_COUNT] = perlin_generate_perm(&mut thread_rng());
@@ -37,27 +38,31 @@ fn perlin_generate_perm<R: Rng + ?Sized>(rng: &mut R) -> [u8; POINT_COUNT] {
     p
 }
 
-fn generate_floats<R: Rng + ?Sized>(rng: &mut R) -> [f32; POINT_COUNT] {
-    let mut ranfloat = [0.0_f32; POINT_COUNT];
+fn generate_vectors<R: Rng + ?Sized>(rng: &mut R) -> [Vec3; POINT_COUNT] {
+    let mut ranvec = [vec3!(); POINT_COUNT];
 
-    for element in ranfloat.iter_mut() {
-        *element = rng.gen();
+    for element in ranvec.iter_mut() {
+        *element = Vec3::random_range(rng, -1.0, 1.0).unit_vector();
     }
 
-    ranfloat
+    ranvec
 }
 
 /// Linearly interpolate in 3 dimensions across some corners.
-fn trilinear_interpolate(c: &[[[f32; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
-    let mut accum = 0.0_f32;
+fn trilinear_interpolate(c: &[[[Vec3; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
+    let uu = u * u * (3.0 - 2.0 * u);
+    let vv = v * v * (3.0 - 2.0 * v);
+    let ww = w * w * (3.0 - 2.0 * w);
+    let mut accum = 0.0;
 
     for (i, x) in c.iter().enumerate() {
         for (j, y) in x.iter().enumerate() {
             for (k, z) in y.iter().enumerate() {
-                accum += (((i as f32) * u) + ((1 - i) as f32) * (1.0 - u))
-                    * (((j as f32) * v) + ((1 - j) as f32) * (1.0 - v))
-                    * (((k as f32) * w) + ((1 - k) as f32) * (1.0 - w))
-                    * z;
+                let weight = vec3!(u - i as f32, v - j as f32, w - k as f32);
+                accum += (((i as f32) * uu) + ((1 - i) as f32) * (1.0 - uu))
+                    * (((j as f32) * vv) + ((1 - j) as f32) * (1.0 - vv))
+                    * (((k as f32) * ww) + ((1 - k) as f32) * (1.0 - ww))
+                    * z.dot(&weight);
             }
         }
     }
@@ -72,15 +77,11 @@ fn noise(p: &Vec3) -> f32 {
     let j = p[Y].floor();
     let k = p[Z].floor();
 
-    let mut u = p[X] - i;
-    let mut v = p[Y] - j;
-    let mut w = p[Z] - k;
+    let u = p[X] - i;
+    let v = p[Y] - j;
+    let w = p[Z] - k;
 
-    u = u * u * (3.0 - 2.0 * u);
-    v = v * v * (3.0 - 2.0 * v);
-    w = w * w * (3.0 - 2.0 * w);
-
-    let mut c = [[[0.0_f32; 2]; 2]; 2];
+    let mut c = [[[vec3!(); 2]; 2]; 2];
 
     for (di, x) in c.iter_mut().enumerate() {
         for (dj, y) in x.iter_mut().enumerate() {
@@ -88,7 +89,7 @@ fn noise(p: &Vec3) -> f32 {
                 let ix = PERM_X[((i as i32 + di as i32) & 255) as usize];
                 let iy = PERM_X[((j as i32 + dj as i32) & 255) as usize];
                 let iz = PERM_X[((k as i32 + dk as i32) & 255) as usize];
-                *z = RANFLOAT[(ix ^ iy ^ iz) as usize];
+                *z = RANVEC[(ix ^ iy ^ iz) as usize];
             }
         }
     }
@@ -99,6 +100,6 @@ fn noise(p: &Vec3) -> f32 {
 /// Creates a random texture made of perlin noise.
 pub fn perlin_noise(scale: f32) -> Texture {
     Texture(Arc::new(move |_uv_coords, hit_point| {
-        Vec3::from(1.0) * noise(&(hit_point * scale))
+        Vec3::from(1.0) * 0.5 * (1.0 + noise(&(hit_point * scale)))
     }))
 }
