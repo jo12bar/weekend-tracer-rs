@@ -16,6 +16,9 @@ pub use perlin::{perlin_noise, perlin_turbulence};
 pub mod marble;
 pub use marble::simple_marble;
 
+pub mod image;
+pub use crate::texture::image::image;
+
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;
 use std::sync::Arc;

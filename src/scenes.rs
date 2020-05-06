@@ -50,6 +50,23 @@ pub fn two_marble_ish_spheres() -> World {
     )
 }
 
+/// A scene with the earth sitting on top of a checkerboard floor.
+pub fn earth_on_checkerboard() -> World {
+    // Image taken from wikimedia commons:
+    let earth_tex = texture::image("./images/Mercator-projection.jpg");
+    let checker_tex =
+        texture::checkerboard(vec3!(0.2, 0.3, 0.1).into(), vec3!(0.9, 0.9, 0.9).into());
+
+    create_world!(
+        Sphere::new(
+            vec3!(0.0, -1000.0, 0.0),
+            1000.0,
+            Material::lambertian(checker_tex)
+        ),
+        Sphere::new(vec3!(0.0, 2.0, 0.0), 2.0, Material::lambertian(earth_tex)),
+    )
+}
+
 /// Create a random scene for funsies!
 pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
     let mut objects: Vec<Box<dyn Hittable>> = Vec::default();
