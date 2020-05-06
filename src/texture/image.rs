@@ -1,10 +1,8 @@
 //! Textures and methods for working with images.
 
 use crate::{texture::Texture, util::clamp, vec3, vec3::Vec3};
-use image::{self as i, GenericImageView};
+use image as i;
 use std::{path::Path, sync::Arc};
-
-const BYTES_PER_PIXEL: u32 = 3;
 
 /// Renders an image as a texture.
 pub fn image<P>(path: P) -> Texture
@@ -17,9 +15,7 @@ where
 
     let (width, height) = img.dimensions();
 
-    let bytes_per_scanline = BYTES_PER_PIXEL * width;
-
-    Texture(Arc::new(move |(u, v), p| {
+    Texture(Arc::new(move |(u, v), _p| {
         // Clamp input texture coordinates to [0,1] x [1,0]
         let u = clamp(u, 0.0, 1.0);
         let v = 1.0 - clamp(v, 0.0, 1.0); // Flip v to image coordinates!
