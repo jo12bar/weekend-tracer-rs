@@ -3,9 +3,7 @@ use clap::{clap_app, crate_version};
 #[cfg(feature = "gui-support")]
 use minifb::{Key, Window, WindowOptions};
 
-use weekend_tracer_rs::{
-    bvh::BVH, camera::Camera, hittable::world::World, renderer, vec3, vec3::Vec3,
-};
+use weekend_tracer_rs::{bvh::BVH, camera::Camera, renderer, scenes, vec3, vec3::Vec3};
 
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
@@ -118,14 +116,14 @@ fn main() {
 
     let matches = app.get_matches();
 
-    let world = World::random_scene(&mut rand::thread_rng());
+    let world = scenes::two_checkerboard_spheres();
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
     let lookfrom = vec3!(13.0, 2.0, 3.0);
     let lookat = vec3!(0.0, 0.0, 0.0);
     let vup = vec3!(0.0, 1.0);
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
+    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
