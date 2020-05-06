@@ -77,7 +77,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
         1000.0,
         Material::lambertian(texture::checkerboard(
             vec3!(0.2, 0.3, 0.1).into(),
-            vec3!(0.9, 0.9, 0.9).into(),
+            texture::simple_marble(40.0),
         )),
     )));
 
@@ -138,7 +138,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
     objects.push(Box::new(Sphere::new(
         vec3!(-4.0, 1.0),
         1.0,
-        Material::lambertian(vec3!(0.4, 0.2, 0.1).into()),
+        Material::lambertian(texture::image("./images/Mercator-projection.jpg")),
     )));
 
     // Large metal ball:
