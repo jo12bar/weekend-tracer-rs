@@ -68,22 +68,27 @@ fn trilinear_interpolate(c: &[[[f32; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 
 /// Generate some perlin noise at a point.
 #[allow(clippy::many_single_char_names)]
 fn noise(p: &Vec3) -> f32 {
-    let u = p[X] - p[X].floor();
-    let v = p[Y] - p[Y].floor();
-    let w = p[Z] - p[Z].floor();
+    let i = p[X].floor();
+    let j = p[Y].floor();
+    let k = p[Z].floor();
 
-    let i = ((4.0 * p[X]) as usize) & 255;
-    let j = ((4.0 * p[Y]) as usize) & 255;
-    let k = ((4.0 * p[Z]) as usize) & 255;
+    let mut u = p[X] - i;
+    let mut v = p[Y] - j;
+    let mut w = p[Z] - k;
+
+    u = u * u * (3.0 - 2.0 * u);
+    v = v * v * (3.0 - 2.0 * v);
+    w = w * w * (3.0 - 2.0 * w);
 
     let mut c = [[[0.0_f32; 2]; 2]; 2];
 
     for (di, x) in c.iter_mut().enumerate() {
         for (dj, y) in x.iter_mut().enumerate() {
             for (dk, z) in y.iter_mut().enumerate() {
-                *z = RANFLOAT[(PERM_X[(i + di) & 255]
-                    ^ PERM_Y[(j + dj) & 255]
-                    ^ PERM_Z[(k + dk) & 255]) as usize];
+                let ix = PERM_X[((i as i32 + di as i32) & 255) as usize];
+                let iy = PERM_X[((j as i32 + dj as i32) & 255) as usize];
+                let iz = PERM_X[((k as i32 + dk as i32) & 255) as usize];
+                *z = RANFLOAT[(ix ^ iy ^ iz) as usize];
             }
         }
     }
