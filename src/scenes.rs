@@ -22,6 +22,20 @@ pub fn two_checkerboard_spheres() -> World {
     )
 }
 
+/// A scene with two spheres with perlin noise textures.
+pub fn two_perlin_spheres() -> World {
+    let texture = texture::perlin_noise();
+
+    create_world!(
+        Sphere::new(
+            vec3!(0.0, -1000.0, 0.0),
+            1000.0,
+            Material::lambertian(texture.clone())
+        ),
+        Sphere::new(vec3!(0.0, 2.0, 0.0), 2.0, Material::lambertian(texture)),
+    )
+}
+
 /// Create a random scene for funsies!
 pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
     let mut objects: Vec<Box<dyn Hittable>> = Vec::default();

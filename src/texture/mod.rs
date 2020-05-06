@@ -10,6 +10,9 @@ pub use constant::constant;
 pub mod checkerboard;
 pub use checkerboard::checkerboard;
 
+pub mod perlin;
+pub use perlin::perlin_noise;
+
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;
 use std::sync::Arc;
