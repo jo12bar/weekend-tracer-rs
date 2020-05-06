@@ -97,8 +97,8 @@ fn noise(p: &Vec3) -> f32 {
 }
 
 /// Creates a random texture made of perlin noise.
-pub fn perlin_noise() -> Texture {
-    Texture(Arc::new(|_uv_coords, hit_point| {
-        Vec3::from(1.0) * noise(hit_point)
+pub fn perlin_noise(scale: f32) -> Texture {
+    Texture(Arc::new(move |_uv_coords, hit_point| {
+        Vec3::from(1.0) * noise(&(hit_point * scale))
     }))
 }

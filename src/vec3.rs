@@ -444,6 +444,48 @@ impl Mul<f32> for Vec3 {
     }
 }
 
+impl Mul<&Vec3> for f32 {
+    type Output = Vec3;
+    fn mul(self, vec: &Vec3) -> Vec3 {
+        Vec3(self * vec.0, self * vec.1, self * vec.2)
+    }
+}
+
+impl Mul<f32> for &Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: f32) -> Vec3 {
+        Vec3(self.0 * rhs, self.1 * rhs, self.2 * rhs)
+    }
+}
+
+impl Mul<Vec3> for &f32 {
+    type Output = Vec3;
+    fn mul(self, vec: Vec3) -> Vec3 {
+        Vec3(self * vec.0, self * vec.1, self * vec.2)
+    }
+}
+
+impl Mul<&f32> for Vec3 {
+    type Output = Self;
+    fn mul(self, rhs: &f32) -> Self {
+        Vec3(self.0 * rhs, self.1 * rhs, self.2 * rhs)
+    }
+}
+
+impl Mul<&Vec3> for &f32 {
+    type Output = Vec3;
+    fn mul(self, vec: &Vec3) -> Vec3 {
+        Vec3(self * vec.0, self * vec.1, self * vec.2)
+    }
+}
+
+impl Mul<&f32> for &Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: &f32) -> Vec3 {
+        Vec3(self.0 * rhs, self.1 * rhs, self.2 * rhs)
+    }
+}
+
 impl Mul for Vec3 {
     type Output = Self;
     fn mul(self, other: Self) -> Self {

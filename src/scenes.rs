@@ -24,7 +24,7 @@ pub fn two_checkerboard_spheres() -> World {
 
 /// A scene with two spheres with perlin noise textures.
 pub fn two_perlin_spheres() -> World {
-    let texture = texture::perlin_noise();
+    let texture = texture::perlin_noise(3.0);
 
     create_world!(
         Sphere::new(
