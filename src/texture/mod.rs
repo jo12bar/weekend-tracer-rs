@@ -11,7 +11,7 @@ pub mod checkerboard;
 pub use checkerboard::checkerboard;
 
 pub mod perlin;
-pub use perlin::perlin_noise;
+pub use perlin::{perlin_noise, perlin_turbulence};
 
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;

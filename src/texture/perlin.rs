@@ -72,7 +72,7 @@ fn trilinear_interpolate(c: &[[[Vec3; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32
 
 /// Generate some perlin noise at a point.
 #[allow(clippy::many_single_char_names)]
-fn noise(p: &Vec3) -> f32 {
+pub(crate) fn noise(p: &Vec3) -> f32 {
     let i = p[X].floor();
     let j = p[Y].floor();
     let k = p[Z].floor();
@@ -97,9 +97,33 @@ fn noise(p: &Vec3) -> f32 {
     trilinear_interpolate(&c, u, v, w)
 }
 
+/// Returns the result of summing a bunch of perlin noise.
+pub(crate) fn turbulence(p: &Vec3, depth: Option<usize>) -> f32 {
+    let mut accum = 0.0;
+    let mut temp_p = *p;
+    let mut weight = 1.0;
+    let depth = depth.unwrap_or(7);
+
+    for _ in 0..depth {
+        accum += weight * noise(&temp_p);
+        weight *= 0.5;
+        temp_p *= 2.0;
+    }
+
+    accum.abs()
+}
+
 /// Creates a random texture made of perlin noise.
 pub fn perlin_noise(scale: f32) -> Texture {
     Texture(Arc::new(move |_uv_coords, hit_point| {
         Vec3::from(1.0) * 0.5 * (1.0 + noise(&(hit_point * scale)))
+    }))
+}
+
+/// Creates a random texture made of the sum of repeated applications of perlin
+/// noise.
+pub fn perlin_turbulence(scale: f32, depth: Option<usize>) -> Texture {
+    Texture(Arc::new(move |_uv_coords, hit_point| {
+        Vec3::from(1.0) * turbulence(&(scale * hit_point), depth)
     }))
 }
