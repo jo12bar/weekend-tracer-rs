@@ -47,18 +47,48 @@ fn generate_floats<R: Rng + ?Sized>(rng: &mut R) -> [f32; POINT_COUNT] {
     ranfloat
 }
 
+/// Linearly interpolate in 3 dimensions across some corners.
+fn trilinear_interpolate(c: &[[[f32; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
+    let mut accum = 0.0_f32;
+
+    for (i, x) in c.iter().enumerate() {
+        for (j, y) in x.iter().enumerate() {
+            for (k, z) in y.iter().enumerate() {
+                accum += (((i as f32) * u) + ((1 - i) as f32) * (1.0 - u))
+                    * (((j as f32) * v) + ((1 - j) as f32) * (1.0 - v))
+                    * (((k as f32) * w) + ((1 - k) as f32) * (1.0 - w))
+                    * z;
+            }
+        }
+    }
+
+    accum
+}
+
 /// Generate some perlin noise at a point.
 #[allow(clippy::many_single_char_names)]
 fn noise(p: &Vec3) -> f32 {
-    let _u = p[X] - p[X].floor();
-    let _v = p[Y] - p[Y].floor();
-    let _w = p[Z] - p[Z].floor();
+    let u = p[X] - p[X].floor();
+    let v = p[Y] - p[Y].floor();
+    let w = p[Z] - p[Z].floor();
 
     let i = ((4.0 * p[X]) as usize) & 255;
     let j = ((4.0 * p[Y]) as usize) & 255;
     let k = ((4.0 * p[Z]) as usize) & 255;
 
-    RANFLOAT[(PERM_X[i] ^ PERM_Y[j] ^ PERM_Z[k]) as usize]
+    let mut c = [[[0.0_f32; 2]; 2]; 2];
+
+    for (di, x) in c.iter_mut().enumerate() {
+        for (dj, y) in x.iter_mut().enumerate() {
+            for (dk, z) in y.iter_mut().enumerate() {
+                *z = RANFLOAT[(PERM_X[(i + di) & 255]
+                    ^ PERM_Y[(j + dj) & 255]
+                    ^ PERM_Z[(k + dk) & 255]) as usize];
+            }
+        }
+    }
+
+    trilinear_interpolate(&c, u, v, w)
 }
 
 /// Creates a random texture made of perlin noise.
