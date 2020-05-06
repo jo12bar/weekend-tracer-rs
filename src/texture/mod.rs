@@ -7,6 +7,9 @@
 pub mod constant;
 pub use constant::constant;
 
+pub mod checkerboard;
+pub use checkerboard::checkerboard;
+
 use crate::hittable::UVCoord;
 use crate::vec3::Vec3;
 use std::sync::Arc;

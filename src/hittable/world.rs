@@ -4,6 +4,7 @@ use crate::aabb::AABB;
 use crate::hittable::{moving_sphere::MovingSphere, sphere::Sphere, HitRecord, Hittable};
 use crate::material::Material;
 use crate::ray::Ray;
+use crate::texture;
 use crate::vec3;
 use crate::vec3::Vec3;
 use rand::Rng;
@@ -30,7 +31,10 @@ impl World {
         objects.push(Box::new(Sphere::new(
             vec3!(0.0, -1000.0, 0.0),
             1000.0,
-            Material::lambertian(vec3!(0.5, 0.5, 0.5).into()),
+            Material::lambertian(texture::checkerboard(
+                vec3!(0.2, 0.3, 0.1).into(),
+                vec3!(0.9, 0.9, 0.9).into(),
+            )),
         )));
 
         // Random small spheres:
