@@ -2,7 +2,7 @@
 use crate::{
     create_world,
     hittable::{
-        moving_sphere::MovingSphere, sphere::Sphere, world::World, xy_rect::XYRect, Hittable,
+        aa_rect::XYRect, moving_sphere::MovingSphere, sphere::Sphere, world::World, Hittable,
     },
     material::Material,
     texture, vec3,

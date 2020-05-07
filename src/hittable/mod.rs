@@ -1,9 +1,9 @@
 //! Things that can be hit by rays, and some related functions and traits.
 
+pub mod aa_rect;
 pub mod moving_sphere;
 pub mod sphere;
 pub mod world;
-pub mod xy_rect;
 
 use crate::aabb::AABB;
 use crate::material::Material;
