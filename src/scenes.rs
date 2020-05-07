@@ -1,12 +1,37 @@
 //! Some pre-made scenes for your use.
 use crate::{
     create_world,
-    hittable::{moving_sphere::MovingSphere, sphere::Sphere, world::World, Hittable},
+    hittable::{
+        moving_sphere::MovingSphere, sphere::Sphere, world::World, xy_rect::XYRect, Hittable,
+    },
     material::Material,
     texture, vec3,
     vec3::Vec3,
 };
 use rand::prelude::*;
+
+/// A scene with a perlin turbulence sphere on a perlin turbulence ground, with
+/// a white diffuse light formed by a axis-aligned rectangle (`XYRect`). Oh: and
+/// a floating, glowing sphere.
+pub fn simple_lit_two_perlin_spheres() -> World {
+    let pertext = texture::simple_marble(4.0);
+    let difflight = Material::diffuse_light(vec3!(4.0, 4.0, 4.0).into());
+
+    create_world!(
+        // Ground:
+        Sphere::new(
+            vec3!(0.0, -1000.0),
+            1000.0,
+            Material::lambertian(pertext.clone())
+        ),
+        // Sphere:
+        Sphere::new(vec3!(0.0, 2.0), 2.0, Material::lambertian(pertext)),
+        // Floating glowing sphere:
+        Sphere::new(vec3!(0.0, 7.0), 2.0, difflight.clone()),
+        // Glowing rectangle:
+        XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight),
+    )
+}
 
 /// A scene with two checkerboarded spheres.
 pub fn two_checkerboard_spheres() -> World {

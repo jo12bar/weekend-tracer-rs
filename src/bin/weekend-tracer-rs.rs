@@ -81,21 +81,21 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let world = scenes::random_scene(&mut rand::thread_rng());
+    let world = scenes::simple_lit_two_perlin_spheres();
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
-    let lookfrom = vec3!(13.0, 2.0, 3.0);
-    let lookat = vec3!(0.0, 0.0, 0.0);
+    let lookfrom = vec3!(15.0, 3.0, 3.0);
+    let lookat = vec3!(0.0, 2.0, 0.0);
     let vup = vec3!(0.0, 1.0);
     let aspect_ratio = (width as f32) / (height as f32);
-    let dist_to_focus = 10.0;
-    let aperture = 0.0;
+    let dist_to_focus = (lookat - lookfrom).length();
+    let aperture = 0.7;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         vup,
-        20.0,
+        25.0,
         aspect_ratio,
         aperture,
         dist_to_focus,
