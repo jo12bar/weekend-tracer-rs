@@ -3,6 +3,7 @@
 pub mod moving_sphere;
 pub mod sphere;
 pub mod world;
+pub mod xy_rect;
 
 use crate::aabb::AABB;
 use crate::material::Material;
