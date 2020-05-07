@@ -1,6 +1,7 @@
 //! Things that can be hit by rays, and some related functions and traits.
 
 pub mod aa_rect;
+pub mod flip_face;
 pub mod moving_sphere;
 pub mod sphere;
 pub mod world;
@@ -58,12 +59,11 @@ impl HitRecord {
         material: Arc<Material>,
         uv: UVCoord,
     ) -> HitRecord {
-        let (front_face, normal) = if ray.direction.dot(&outward_normal) < 0.0 {
-            // The ray hit the outside of the surface
-            (true, outward_normal)
+        let front_face = ray.direction.dot(&outward_normal) < 0.0;
+        let normal = if front_face {
+            outward_normal
         } else {
-            // The ray hit the inside of the surface
-            (false, -outward_normal)
+            -outward_normal
         };
 
         HitRecord {
@@ -103,6 +103,11 @@ pub trait Hittable: Send + Sync + core::fmt::Debug {
 
     /// Clones the object into a Box<dyn Hittable>.
     fn box_clone(&self) -> Box<dyn Hittable>;
+
+    /// Flips the face of the object, cloning it.
+    fn flip_face(&self) -> flip_face::FlipFace {
+        flip_face::FlipFace::new(self.box_clone())
+    }
 }
 
 impl Clone for Box<dyn Hittable> {

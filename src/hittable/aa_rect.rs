@@ -220,7 +220,7 @@ impl Hittable for YZRect {
         // the X dimension by a small amount.
         Some(AABB::new(
             vec3!(self.k - 0.0001, self.y0, self.z0),
-            vec3!(self.k - 0.0001, self.y1, self.z1),
+            vec3!(self.k + 0.0001, self.y1, self.z1),
         ))
     }
 
