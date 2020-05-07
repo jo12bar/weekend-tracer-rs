@@ -2,13 +2,38 @@
 use crate::{
     create_world,
     hittable::{
-        aa_rect::XYRect, moving_sphere::MovingSphere, sphere::Sphere, world::World, Hittable,
+        aa_rect::{XYRect, XZRect, YZRect},
+        moving_sphere::MovingSphere,
+        sphere::Sphere,
+        world::World,
+        Hittable,
     },
     material::Material,
     texture, vec3,
     vec3::Vec3,
 };
 use rand::prelude::*;
+
+/// A "Cornell Box" scene. Introduced in 1984, and is used to model the
+/// interaction of light between diffuse surfaces.
+pub fn cornell_box() -> World {
+    let red = Material::lambertian(vec3!(0.65, 0.05, 0.05).into());
+    let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
+    let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
+
+    let light = Material::diffuse_light(Vec3::from(15.0).into());
+
+    create_world!(
+        // Five walls:
+        YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, green), // left
+        YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, red),     // right
+        XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone()), // floor
+        XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
+        XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white), // back
+        // Light:
+        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
+    )
+}
 
 /// A scene with a perlin turbulence sphere on a perlin turbulence ground, with
 /// a white diffuse light formed by a axis-aligned rectangle (`XYRect`). Oh: and

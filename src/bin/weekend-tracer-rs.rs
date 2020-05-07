@@ -6,8 +6,8 @@ use minifb::{Key, Window, WindowOptions};
 use weekend_tracer_rs::{bvh::BVH, camera::Camera, renderer, scenes, vec3, vec3::Vec3};
 
 // Some defaults
-const WIDTH: usize = 200;
-const HEIGHT: usize = 100;
+const WIDTH: usize = 300;
+const HEIGHT: usize = 300;
 const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_REFLECTION_DEPTH: usize = 50;
 
@@ -28,7 +28,7 @@ fn main() {
             (@arg OUTPUT_FILE: required_unless[gui] "The file to be outputted to.")
             (@arg ppm: -p --ppm "Output to an ASCII PPM file (e.g. test.ppm, image.ppm, etc...).")
         )
-        (@arg dimensions: -d --dimensions <WIDTH> <HEIGHT> !required "Set the dimensions for the render. 200x100 by default.")
+        (@arg dimensions: -d --dimensions <WIDTH> <HEIGHT> !required "Set the dimensions for the render. 300x300 by default.")
         (@arg samples: -s --samples <SAMPLES_PER_PIXEL> !required "Sets the number of samples to be taken per pixel.")
         (@arg reflections: -r --max_reflection_depth <DEPTH> !required "Sets the maximum reflection depth.")
     );
@@ -81,21 +81,22 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let world = scenes::simple_lit_two_perlin_spheres();
+    let world = scenes::cornell_box();
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
-    let lookfrom = vec3!(15.0, 3.0, 3.0);
-    let lookat = vec3!(0.0, 2.0, 0.0);
+    let lookfrom = vec3!(278.0, 278.0, -800.0);
+    let lookat = vec3!(278.0, 278.0, 0.0);
     let vup = vec3!(0.0, 1.0);
     let aspect_ratio = (width as f32) / (height as f32);
-    let dist_to_focus = (lookat - lookfrom).length();
-    let aperture = 0.7;
+    let dist_to_focus = 10.0;
+    let aperture = 0.0;
+    let vfov = 40.0; // degrees
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         vup,
-        25.0,
+        vfov,
         aspect_ratio,
         aperture,
         dist_to_focus,

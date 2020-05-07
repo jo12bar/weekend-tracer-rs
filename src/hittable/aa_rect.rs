@@ -130,7 +130,7 @@ impl Hittable for XZRect {
             return None;
         }
 
-        let outward_normal = vec3!(0.0, 0.0, 1.0);
+        let outward_normal = vec3!(0.0, 1.0, 0.0);
         let u = (x - self.x0) / (self.x1 - self.x0);
         let v = (z - self.z0) / (self.z1 - self.z0);
 
@@ -201,7 +201,7 @@ impl Hittable for YZRect {
             return None;
         }
 
-        let outward_normal = vec3!(0.0, 0.0, 1.0);
+        let outward_normal = vec3!(1.0, 0.0, 0.0);
         let u = (y - self.y0) / (self.y1 - self.y0);
         let v = (z - self.z0) / (self.z1 - self.z0);
 
