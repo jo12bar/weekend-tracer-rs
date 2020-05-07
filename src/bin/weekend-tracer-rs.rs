@@ -11,6 +11,8 @@ const HEIGHT: usize = 100;
 const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_REFLECTION_DEPTH: usize = 50;
 
+const BACKGROUND_COLOR: Vec3 = vec3!();
+
 fn main() {
     #[allow(unused_mut)]
     let mut app = clap_app!(weekend_tracer_rs =>
@@ -158,6 +160,7 @@ fn gui_output(
         max_reflection_depth,
         bvh,
         camera,
+        BACKGROUND_COLOR,
     ))
     .collect();
 
@@ -194,6 +197,7 @@ fn ppm_output(
         max_reflection_depth,
         bvh,
         camera,
+        BACKGROUND_COLOR,
     )
     .into_iter()
     .map(|(r, g, b)| format!("{} {} {}", r, g, b))
@@ -222,6 +226,7 @@ fn image_output(
         max_reflection_depth,
         bvh,
         camera,
+        BACKGROUND_COLOR,
     )
     .into_iter()
     .map(|(r, g, b)| vec![r as u8, g as u8, b as u8])

@@ -5,7 +5,7 @@ use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::clamp;
 use crate::vec3;
-use crate::vec3::{Axis::*, Channel::*, Vec3};
+use crate::vec3::{Channel::*, Vec3};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
@@ -14,10 +14,13 @@ use rayon::prelude::*;
 /// from 0-255.
 pub type Pixel = (u32, u32, u32);
 
-/// Linearly blends white and blue depending on the height of the passed-in
-/// ray's y coordinate, *after* scaling the ray direction to unit length (so
-/// -1.0 <= y <= 1.0).
-fn ray_color<R: Rng + ?Sized>(rng: &mut R, ray: &Ray, bvh: &BVH, reflection_depth: usize) -> Vec3 {
+fn ray_color<R: Rng + ?Sized>(
+    rng: &mut R,
+    ray: &Ray,
+    background_color: &Vec3,
+    bvh: &BVH,
+    reflection_depth: usize,
+) -> Vec3 {
     if reflection_depth == 0 {
         // If we've exceeded the ray bounce limit, no more light is gathered.
         vec3!()
@@ -30,23 +33,27 @@ fn ray_color<R: Rng + ?Sized>(rng: &mut R, ray: &Ray, bvh: &BVH, reflection_dept
         // We hit something! Scatter the ray based on material type. If it
         // successfully scattered, reflect the ray according by the material
         // type, and recurse. If it was absorbed, just return black.
+        //
+        // We also add on some emitted light if the ray hit some emitting material.
+
+        let emitted = hit_record
+            .material
+            .emitted(hit_record.uv, &hit_record.hit_point);
+
         if let Some(Scatter {
             attenuation,
             scattered,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
-            attenuation * ray_color(rng, &scattered, bvh, reflection_depth - 1)
+            emitted
+                + attenuation
+                    * ray_color(rng, &scattered, background_color, bvh, reflection_depth - 1)
         } else {
-            vec3!()
+            emitted
         }
     } else {
-        // Didn't hit anything! Just render the sky by blending blue and white
-        // linearly based on the y-direction of the ray.
-        let unit_direction = ray.direction.unit_vector();
-        let t = 0.5 * (unit_direction[Y] + 1.0);
-
-        // Linearly blend white and light blue.
-        ((1.0 - t) * vec3!(1.0, 1.0, 1.0)) + (t * vec3!(0.5, 0.7, 1.0))
+        // Didn't hit anything! Just render the background colour.
+        *background_color
     }
 }
 
@@ -60,6 +67,7 @@ pub fn render(
     max_reflection_depth: usize,
     bvh: BVH,
     camera: Camera,
+    background_color: Vec3,
 ) -> Vec<Pixel> {
     let pb_style = ProgressStyle::default_bar()
         .template("{spinner} {msg} [{elapsed_precise}] [{bar:30.yellow/blue}] {pos}/{len}")
@@ -84,7 +92,7 @@ pub fn render(
                 let v = ((j as f32) + rng.gen::<f32>()) / (height as f32);
 
                 let ray = camera.get_ray(rng, u, v);
-                color += ray_color(rng, &ray, &bvh, max_reflection_depth);
+                color += ray_color(rng, &ray, &background_color, &bvh, max_reflection_depth);
             }
 
             // Divide the color total by the number of samples and gamma-correct
