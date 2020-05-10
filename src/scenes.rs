@@ -3,6 +3,7 @@ use crate::{
     create_world,
     hittable::{
         aa_rect::{XYRect, XZRect, YZRect},
+        block::Block,
         moving_sphere::MovingSphere,
         sphere::Sphere,
         world::World,
@@ -29,9 +30,16 @@ pub fn cornell_box() -> World {
         YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, red),     // right
         XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, white.clone()), // floor
         XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
-        XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white), // back
+        XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
         XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
+        // Blocks:
+        Block::new(
+            vec3!(130.0, 0.0, 65.0),
+            vec3!(295.0, 165.0, 230.0),
+            white.clone()
+        ),
+        Block::new(vec3!(265.0, 0.0, 295.0), vec3!(430.0, 330.0, 460.0), white),
     )
 }
 

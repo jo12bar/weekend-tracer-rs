@@ -1,6 +1,7 @@
 //! Things that can be hit by rays, and some related functions and traits.
 
 pub mod aa_rect;
+pub mod block;
 pub mod flip_face;
 pub mod moving_sphere;
 pub mod sphere;
