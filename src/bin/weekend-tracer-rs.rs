@@ -6,7 +6,13 @@ use minifb::{Key, Window, WindowOptions};
 use weekend_tracer_rs::{bvh::BVH, camera::Camera, renderer, scenes, vec3, vec3::Vec3};
 
 // Some defaults
+#[cfg(debug_assertions)]
+const WIDTH: usize = 100;
+#[cfg(not(debug_assertions))]
 const WIDTH: usize = 300;
+#[cfg(debug_assertions)]
+const HEIGHT: usize = 100;
+#[cfg(not(debug_assertions))]
 const HEIGHT: usize = 300;
 const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_REFLECTION_DEPTH: usize = 50;
