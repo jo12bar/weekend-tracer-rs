@@ -38,7 +38,8 @@ pub fn cornell_box() -> World {
             vec3!(130.0, 0.0, 65.0),
             vec3!(295.0, 165.0, 230.0),
             white.clone()
-        ),
+        )
+        .translate(vec3!(0.0, 220.0)),
         Block::new(vec3!(265.0, 0.0, 295.0), vec3!(430.0, 330.0, 460.0), white),
     )
 }

@@ -5,6 +5,7 @@ pub mod block;
 pub mod flip_face;
 pub mod moving_sphere;
 pub mod sphere;
+pub mod translate;
 pub mod world;
 
 use crate::aabb::AABB;
@@ -108,6 +109,11 @@ pub trait Hittable: Send + Sync + core::fmt::Debug {
     /// Flips the face of the object, cloning it.
     fn flip_face(&self) -> flip_face::FlipFace {
         flip_face::FlipFace::new(self.box_clone())
+    }
+
+    /// Translates the object by some offset using a `Translate` instance, cloning it.
+    fn translate(&self, displacement: Vec3) -> translate::Translate {
+        translate::Translate::new(self.box_clone(), displacement)
     }
 }
 
