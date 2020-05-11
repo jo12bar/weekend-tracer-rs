@@ -4,6 +4,7 @@ pub mod aa_rect;
 pub mod block;
 pub mod flip_face;
 pub mod moving_sphere;
+pub mod rotate;
 pub mod sphere;
 pub mod translate;
 pub mod world;
@@ -11,7 +12,7 @@ pub mod world;
 use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::vec3::{Axis::*, Vec3};
+use crate::vec3::{Axis, Axis::*, Vec3};
 use std::sync::Arc;
 
 /// (u, v) surface coordinates for some `Hittable` that has a surface.
@@ -114,6 +115,12 @@ pub trait Hittable: Send + Sync + core::fmt::Debug {
     /// Translates the object by some offset using a `Translate` instance, cloning it.
     fn translate(&self, displacement: Vec3) -> translate::Translate {
         translate::Translate::new(self.box_clone(), displacement)
+    }
+
+    /// Rotates the object by θ degrees counterclockwise about some `vec3::Axis`, cloning it.
+    /// Uses a `Rotate` instance.
+    fn rotate(&self, axis: Axis, angle: f32) -> rotate::Rotate {
+        rotate::Rotate::new(self.box_clone(), axis, angle)
     }
 }
 

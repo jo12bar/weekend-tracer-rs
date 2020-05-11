@@ -11,7 +11,7 @@ use crate::{
     },
     material::Material,
     texture, vec3,
-    vec3::Vec3,
+    vec3::{Axis::*, Vec3},
 };
 use rand::prelude::*;
 
@@ -34,13 +34,12 @@ pub fn cornell_box() -> World {
         // Light:
         XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
         // Blocks:
-        Block::new(
-            vec3!(130.0, 0.0, 65.0),
-            vec3!(295.0, 165.0, 230.0),
-            white.clone()
-        )
-        .translate(vec3!(0.0, 220.0)),
-        Block::new(vec3!(265.0, 0.0, 295.0), vec3!(430.0, 330.0, 460.0), white),
+        Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
+            .rotate(Y, 15.0)
+            .translate(vec3!(265.0, 0.0, 295.0)),
+        Block::new(vec3!(), Vec3::from(165.0), white)
+            .rotate(Y, -18.0)
+            .translate(vec3!(130.0, 0.0, 65.0)),
     )
 }
 
