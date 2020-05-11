@@ -55,16 +55,15 @@ impl Material {
     }
 
     /// Create a new dielectric material.
-    pub fn dielectric(refractive_index: f32, density: f32) -> Self {
-        Self::Dielectric(dielectric::Dielectric::new(refractive_index, density))
+    pub fn dielectric(refractive_index: f32) -> Self {
+        Self::Dielectric(dielectric::Dielectric::new(refractive_index))
     }
 
     /// Create a new dielectric material with a custom albedo.
-    pub fn dielectric_with_albedo(albedo: Vec3, refractive_index: f32, density: f32) -> Self {
+    pub fn dielectric_with_albedo(albedo: Vec3, refractive_index: f32) -> Self {
         Self::Dielectric(dielectric::Dielectric::new_with_albedo(
             albedo,
             refractive_index,
-            density,
         ))
     }
 
