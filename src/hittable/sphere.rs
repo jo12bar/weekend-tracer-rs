@@ -46,7 +46,7 @@ impl Hittable for Sphere {
 
             let t = if solution_1 < t_max && solution_1 > t_min {
                 Some(solution_1)
-            } else if solution_2 < t_max && solution_2 > t_max {
+            } else if solution_2 < t_max && solution_2 > t_min {
                 Some(solution_2)
             } else {
                 None
