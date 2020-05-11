@@ -3,6 +3,7 @@
 
 pub mod dielectric;
 pub mod diffuse_light;
+pub mod isotropic;
 pub mod lambertian;
 pub mod metal;
 
@@ -39,35 +40,42 @@ pub enum Material {
     Metal(metal::Metal),
     Dielectric(dielectric::Dielectric),
     DiffuseLight(diffuse_light::DiffuseLight),
+    Isotropic(isotropic::Isotropic),
 }
 
 impl Material {
     /// Create a new lambertian material.
-    pub fn lambertian(albedo: Texture) -> Material {
-        Material::Lambertian(lambertian::Lambertian::new(albedo))
+    pub fn lambertian(albedo: Texture) -> Self {
+        Self::Lambertian(lambertian::Lambertian::new(albedo))
     }
 
     /// Create a new metallic material.
-    pub fn metal(albedo: Vec3, fuzz: f32) -> Material {
-        Material::Metal(metal::Metal::new(albedo, fuzz))
+    pub fn metal(albedo: Vec3, fuzz: f32) -> Self {
+        Self::Metal(metal::Metal::new(albedo, fuzz))
     }
 
     /// Create a new dielectric material.
-    pub fn dielectric(refractive_index: f32) -> Material {
-        Material::Dielectric(dielectric::Dielectric::new(refractive_index))
+    pub fn dielectric(refractive_index: f32) -> Self {
+        Self::Dielectric(dielectric::Dielectric::new(refractive_index))
     }
 
     /// Create a new dielectric material with a custom albedo.
-    pub fn dielectric_with_albedo(albedo: Vec3, refractive_index: f32) -> Material {
-        Material::Dielectric(dielectric::Dielectric::new_with_albedo(
+    pub fn dielectric_with_albedo(albedo: Vec3, refractive_index: f32) -> Self {
+        Self::Dielectric(dielectric::Dielectric::new_with_albedo(
             albedo,
             refractive_index,
         ))
     }
 
     /// Create a new diffuse light.
-    pub fn diffuse_light(emit: Texture) -> Material {
-        Material::DiffuseLight(diffuse_light::DiffuseLight::new(emit))
+    pub fn diffuse_light(emit: Texture) -> Self {
+        Self::DiffuseLight(diffuse_light::DiffuseLight::new(emit))
+    }
+
+    /// Create a new isotropic material. Mainly useful for its isotropic
+    /// scattering function.
+    pub fn isotropic(albedo: Texture) -> Self {
+        Self::Isotropic(isotropic::Isotropic::new(albedo))
     }
 
     /// Scatter a ray off a material. Will delegate to the material's
@@ -84,6 +92,7 @@ impl Material {
             Material::Metal(m) => m.scatter(rng, ray, rec),
             Material::Dielectric(d) => d.scatter(rng, ray, rec),
             Material::DiffuseLight(dl) => dl.scatter(rng, ray, rec),
+            Material::Isotropic(i) => i.scatter(rng, ray, rec),
         }
     }
 

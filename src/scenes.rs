@@ -4,6 +4,7 @@ use crate::{
     hittable::{
         aa_rect::{XYRect, XZRect, YZRect},
         block::Block,
+        constant_medium::ConstantMedium,
         moving_sphere::MovingSphere,
         sphere::Sphere,
         world::World,
@@ -22,7 +23,7 @@ pub fn cornell_box() -> World {
     let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
     let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
 
-    let light = Material::diffuse_light(Vec3::from(15.0).into());
+    let light = Material::diffuse_light(Vec3::from(7.0).into());
 
     create_world!(
         // Five walls:
@@ -32,14 +33,26 @@ pub fn cornell_box() -> World {
         XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
         XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
-        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
-        // Blocks:
-        Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
-            .rotate(Y, 15.0)
-            .translate(vec3!(265.0, 0.0, 295.0)),
-        Block::new(vec3!(), Vec3::from(165.0), white)
-            .rotate(Y, -18.0)
-            .translate(vec3!(130.0, 0.0, 65.0)),
+        XZRect::new(113.0, 443.0, 127.0, 432.0, 554.0, light),
+        // Smoke Blocks:
+        ConstantMedium::new(
+            Box::new(
+                Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
+                    .rotate(Y, 15.0)
+                    .translate(vec3!(265.0, 0.0, 295.0))
+            ),
+            0.01,
+            vec3!().into(),
+        ),
+        ConstantMedium::new(
+            Box::new(
+                Block::new(vec3!(), Vec3::from(165.0), white)
+                    .rotate(Y, -18.0)
+                    .translate(vec3!(130.0, 0.0, 65.0))
+            ),
+            0.01,
+            Vec3::from(1.0).into()
+        ),
     )
 }
 

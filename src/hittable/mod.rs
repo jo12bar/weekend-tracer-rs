@@ -2,6 +2,7 @@
 
 pub mod aa_rect;
 pub mod block;
+pub mod constant_medium;
 pub mod flip_face;
 pub mod moving_sphere;
 pub mod rotate;
