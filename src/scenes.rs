@@ -23,6 +23,8 @@ pub fn cornell_box() -> World {
     let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
     let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
 
+    let greenish_glass = Material::dielectric_with_albedo(vec3!(0.5, 0.9, 0.6), 1.0, 0.15);
+
     let light = Material::diffuse_light(Vec3::from(7.0).into());
 
     create_world!(
@@ -34,25 +36,19 @@ pub fn cornell_box() -> World {
         XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
         XZRect::new(113.0, 443.0, 127.0, 432.0, 554.0, light),
-        // Smoke Blocks:
+        // Blocks:
         ConstantMedium::new(
             Box::new(
-                Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
+                Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white)
                     .rotate(Y, 15.0)
                     .translate(vec3!(265.0, 0.0, 295.0))
             ),
             0.01,
             vec3!().into(),
         ),
-        ConstantMedium::new(
-            Box::new(
-                Block::new(vec3!(), Vec3::from(165.0), white)
-                    .rotate(Y, -18.0)
-                    .translate(vec3!(130.0, 0.0, 65.0))
-            ),
-            0.01,
-            Vec3::from(1.0).into()
-        ),
+        Block::new(vec3!(), Vec3::from(165.0), greenish_glass)
+            .rotate(Y, -18.0)
+            .translate(vec3!(130.0, 0.0, 65.0,)),
     )
 }
 
@@ -176,7 +172,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
                 } else {
                     // Glass
                     let albedo = Vec3::random_range(rng, 0.5, 1.0);
-                    Material::dielectric_with_albedo(albedo, 1.5)
+                    Material::dielectric_with_albedo(albedo, 1.5, 0.0)
                 };
 
                 if choose_mat < 0.8 {
@@ -202,7 +198,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
     objects.push(Box::new(Sphere::new(
         vec3!(0.0, 1.0),
         1.0,
-        Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5),
+        Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5, 0.0),
     )));
 
     // Large diffuse ball:
