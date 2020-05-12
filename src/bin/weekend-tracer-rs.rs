@@ -9,11 +9,11 @@ use weekend_tracer_rs::{bvh::BVH, camera::Camera, renderer, scenes, vec3, vec3::
 #[cfg(debug_assertions)]
 const WIDTH: usize = 100;
 #[cfg(not(debug_assertions))]
-const WIDTH: usize = 300;
+const WIDTH: usize = 400;
 #[cfg(debug_assertions)]
 const HEIGHT: usize = 100;
 #[cfg(not(debug_assertions))]
-const HEIGHT: usize = 300;
+const HEIGHT: usize = 400;
 const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_REFLECTION_DEPTH: usize = 50;
 
@@ -87,15 +87,15 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let world = scenes::cornell_box();
+    let world = scenes::tracer_the_next_week_final_scene();
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
-    let lookfrom = vec3!(278.0, 278.0, -800.0);
+    let lookfrom = vec3!(478.0, 278.0, -600.0);
     let lookat = vec3!(278.0, 278.0, 0.0);
     let vup = vec3!(0.0, 1.0);
     let aspect_ratio = (width as f32) / (height as f32);
-    let dist_to_focus = 10.0;
-    let aperture = 0.0;
+    let dist_to_focus = (vec3!(260.0, 150.0, 45.0) - lookfrom).length();
+    let aperture = 0.5;
     let vfov = 40.0; // degrees
 
     let camera = Camera::new(

@@ -16,6 +16,125 @@ use crate::{
 };
 use rand::prelude::*;
 
+/// The final scene from the book *Ray Tracing: The Next Week*.
+pub fn tracer_the_next_week_final_scene() -> World {
+    let mut rng = thread_rng();
+    let mut world: Vec<Box<dyn Hittable>> = vec![];
+
+    // The ground is made up of boxes of randomly varying height:
+    let ground_mat = Material::lambertian(vec3!(0.48, 0.83, 0.53).into());
+    let ground_boxes_per_side = 20;
+    let ground_box_width = 100.0;
+    let mut ground: Vec<Box<dyn Hittable>> =
+        Vec::with_capacity(ground_boxes_per_side * ground_boxes_per_side);
+
+    for i in 0..ground_boxes_per_side {
+        for j in 0..ground_boxes_per_side {
+            let x0 = -1000.0 + (i as f32 * ground_box_width);
+            let y0 = 0.0;
+            let z0 = -1000.0 + (j as f32 * ground_box_width);
+            let x1 = x0 + ground_box_width;
+            let y1: f32 = rng.gen_range(1.0, 101.0);
+            let z1 = z0 + ground_box_width;
+
+            ground.push(Box::new(Block::new(
+                vec3!(x0, y0, z0),
+                vec3!(x1, y1, z1),
+                ground_mat.clone(),
+            )));
+        }
+    }
+
+    world.append(&mut ground);
+
+    // Add a large light:
+    let light = Material::diffuse_light(Vec3::from(7.0).into());
+    world.push(Box::new(XZRect::new(
+        123.0, 423.0, 147.0, 412.0, 553.9, light,
+    )));
+
+    // Add a large, thin area fog:
+    world.push(Box::new(ConstantMedium::new(
+        Box::new(Sphere::new(vec3!(), 5000.0, Material::dielectric(1.5))),
+        0.0001,
+        Vec3::from(1.0).into(),
+    )));
+
+    // Add a moving sphere:
+    let center1 = vec3!(400.0, 400.0, 200.0);
+    let center2 = center1 + vec3!(30.0);
+    let moving_sphere_material = Material::lambertian(vec3!(0.7, 0.3, 0.1).into());
+    world.push(Box::new(MovingSphere::new(
+        center1,
+        center2,
+        0.0,
+        1.0,
+        50.0,
+        moving_sphere_material,
+    )));
+
+    // Add a glass sphere:
+    world.push(Box::new(Sphere::new(
+        vec3!(260.0, 150.0, 45.0),
+        50.0,
+        Material::dielectric(1.5),
+    )));
+
+    // Add a metal sphere:
+    world.push(Box::new(Sphere::new(
+        vec3!(0.0, 150.0, 145.0),
+        50.0,
+        Material::metal(vec3!(0.8, 0.8, 0.9), 10.0),
+    )));
+
+    // Add a blue subsurface reflection sphere:
+    let ssr_boundary = Sphere::new(vec3!(360.0, 150.0, 145.0), 70.0, Material::dielectric(1.5));
+    world.push(ssr_boundary.box_clone());
+    world.push(Box::new(ConstantMedium::new(
+        Box::new(ssr_boundary),
+        0.2,
+        vec3!(0.2, 0.4, 0.9).into(),
+    )));
+
+    // Add the Earth:
+    let earth_mat = Material::lambertian(texture::image("./images/Mercator-projection.jpg"));
+    world.push(Box::new(Sphere::new(
+        vec3!(400.0, 200.0, 400.0),
+        100.0,
+        earth_mat,
+    )));
+
+    // Add a marble sphere:
+    let marble_mat = Material::lambertian(texture::simple_marble(0.1, X));
+    world.push(Box::new(Sphere::new(
+        vec3!(220.0, 280.0, 300.0),
+        80.0,
+        marble_mat,
+    )));
+
+    // Add a bunch of small white spheres in the shape of a cube:
+    let white_mat = Material::lambertian(Vec3::from(0.73).into());
+    let ns = 1000;
+    let mut small_spheres: Vec<Box<dyn Hittable>> = Vec::with_capacity(ns);
+
+    for _ in 0..ns {
+        small_spheres.push(Box::new(Sphere::new(
+            Vec3::random_range(&mut rng, 0.0, 165.0),
+            10.0,
+            white_mat.clone(),
+        )));
+    }
+
+    world.push(
+        World::new(small_spheres)
+            .rotate(Y, 15.0)
+            .translate(vec3!(-100.0, 270.0, 395.0))
+            .box_clone(),
+    );
+
+    World::new(world)
+}
+
 /// A "Cornell Box" scene. Introduced in 1984, and is used to model the
 /// interaction of light between diffuse surfaces.
 pub fn cornell_box() -> World {
@@ -60,7 +179,7 @@ pub fn cornell_box() -> World {
 /// a white diffuse light formed by a axis-aligned rectangle (`XYRect`). Oh: and
 /// a floating, glowing sphere.
 pub fn simple_lit_two_perlin_spheres() -> World {
-    let pertext = texture::simple_marble(4.0);
+    let pertext = texture::simple_marble(4.0, Z);
     let difflight = Material::diffuse_light(vec3!(4.0, 4.0, 4.0).into());
 
     create_world!(
@@ -109,7 +228,7 @@ pub fn two_perlin_spheres() -> World {
 
 /// A scene with two spheres that kind-of look like marble if you squint enough.
 pub fn two_marble_ish_spheres() -> World {
-    let texture = texture::simple_marble(3.0);
+    let texture = texture::simple_marble(3.0, Z);
 
     create_world!(
         Sphere::new(
@@ -148,7 +267,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
         1000.0,
         Material::lambertian(texture::checkerboard(
             vec3!(0.2, 0.3, 0.1).into(),
-            texture::simple_marble(40.0),
+            texture::simple_marble(40.0, Z),
         )),
     )));
 
