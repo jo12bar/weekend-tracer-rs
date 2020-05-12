@@ -55,7 +55,7 @@ pub fn tracer_the_next_week_final_scene() -> World {
 
     // Add a large, thin area fog:
     world.push(Box::new(ConstantMedium::new(
-        Box::new(Sphere::new(vec3!(), 5000.0, Material::dielectric(1.5))),
+        Box::new(Sphere::new(vec3!(), 5000.0, Material::dielectric(1.5, 0.0))),
         0.0001,
         Vec3::from(1.0).into(),
     )));
@@ -77,7 +77,7 @@ pub fn tracer_the_next_week_final_scene() -> World {
     world.push(Box::new(Sphere::new(
         vec3!(260.0, 150.0, 45.0),
         50.0,
-        Material::dielectric(1.5),
+        Material::dielectric_with_albedo(vec3!(0.2, 0.9, 0.4), 1.5, 0.1),
     )));
 
     // Add a metal sphere:
@@ -88,7 +88,11 @@ pub fn tracer_the_next_week_final_scene() -> World {
     )));
 
     // Add a blue subsurface reflection sphere:
-    let ssr_boundary = Sphere::new(vec3!(360.0, 150.0, 145.0), 70.0, Material::dielectric(1.5));
+    let ssr_boundary = Sphere::new(
+        vec3!(360.0, 150.0, 145.0),
+        70.0,
+        Material::dielectric(1.5, 0.0),
+    );
     world.push(ssr_boundary.box_clone());
     world.push(Box::new(ConstantMedium::new(
         Box::new(ssr_boundary),
@@ -295,7 +299,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
                 } else {
                     // Glass
                     let albedo = Vec3::random_range(rng, 0.5, 1.0);
-                    Material::dielectric_with_albedo(albedo, 1.5)
+                    Material::dielectric_with_albedo(albedo, 1.5, 0.5)
                 };
 
                 if choose_mat < 0.8 {
@@ -321,7 +325,7 @@ pub fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> World {
     objects.push(Box::new(Sphere::new(
         vec3!(0.0, 1.0),
         1.0,
-        Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5),
+        Material::dielectric_with_albedo(vec3!(0.5, 0.5, 1.0), 1.5, 0.7),
     )));
 
     // Large diffuse ball:
