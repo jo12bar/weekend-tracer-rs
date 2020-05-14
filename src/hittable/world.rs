@@ -5,6 +5,7 @@ use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Vec3;
+use rand::prelude::*;
 
 /// The world that needs to be rendered, with all of its objects. Every object
 /// needs to implement `Hittable`. Coincidentally, this struct *also* implements
@@ -68,6 +69,26 @@ impl Hittable for World {
         }
 
         Some(output_box)
+    }
+
+    fn pdf_value(&self, origin: &Vec3, v: &Vec3) -> f32 {
+        let weight = 1.0 / self.objects.len() as f32;
+        let mut sum = 0.0;
+
+        for object in &self.objects {
+            sum += object.pdf_value(origin, v);
+        }
+
+        sum * weight
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        // AAHHHH THIS IS BAD
+        let mut rng = thread_rng();
+
+        let index = rng.gen_range(0_u64, self.objects.len() as u64);
+
+        self.objects[index as usize].random(origin)
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {

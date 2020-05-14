@@ -5,12 +5,7 @@ use std::sync::Arc;
 use minifb::{Key, Window, WindowOptions};
 
 use weekend_tracer_rs::{
-    bvh::BVH,
-    camera::Camera,
-    hittable::{sphere::Sphere, Hittable},
-    material::Material,
-    renderer, scenes, vec3,
-    vec3::Vec3,
+    bvh::BVH, camera::Camera, hittable::Hittable, renderer, scenes, vec3, vec3::Vec3,
 };
 
 // Some defaults
@@ -106,25 +101,9 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let (world, camera) = scenes::cornell_box(aspect_ratio);
+    let (world, lights, camera) = scenes::cornell_box(aspect_ratio);
+    let lights = Arc::new(lights);
     let bvh = BVH::new(world.objects, 0.0, 1.0);
-
-    // let lights = Arc::new(XZRect::new(
-    //     213.0,
-    //     343.0,
-    //     227.0,
-    //     332.0,
-    //     554.0,
-    //     Material::lambertian(vec3!().into()),
-    // ));
-
-    // Pretend that the glass sphere is a light so that we can test its new PDF
-    // functions
-    let lights = Arc::new(Sphere::new(
-        vec3!(190.0, 90.0, 190.0),
-        90.0,
-        Material::dielectric(1.5, 0.0),
-    ));
 
     // let lookfrom = vec3!(478.0, 278.0, -600.0);
     // let lookat = vec3!(278.0, 278.0, 0.0);

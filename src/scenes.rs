@@ -142,13 +142,17 @@ pub fn tracer_the_next_week_final_scene() -> World {
 
 /// A "Cornell Box" scene. Introduced in 1984, and is used to model the
 /// interaction of light between diffuse surfaces.
-pub fn cornell_box(aspect: f32) -> (World, Camera) {
+pub fn cornell_box(aspect: f32) -> (World, World, Camera) {
     let red = Material::lambertian(vec3!(0.65, 0.05, 0.05).into());
     let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
     let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
     let glass = Material::dielectric(1.5, 0.0);
 
     let light = Material::diffuse_light(Vec3::from(7.0).into());
+
+    let light_rect = XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light);
+
+    let sphere = Sphere::new(vec3!(190.0, 90.0, 190.0), 90.0, glass);
 
     let world = create_world!(
         // Five walls:
@@ -158,13 +162,15 @@ pub fn cornell_box(aspect: f32) -> (World, Camera) {
         XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
         XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
-        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light).flip_face(),
+        light_rect.clone().flip_face(),
         // Blocks:
         Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white)
             .rotate(Y, 15.0)
             .translate(vec3!(265.0, 0.0, 295.0)),
-        Sphere::new(vec3!(), 90.0, glass).translate(vec3!(190.0, 90.0, 190.0))
+        sphere.clone(),
     );
+
+    let lights = create_world!(light_rect, sphere);
 
     let lookfrom = vec3!(278.0, 278.0, -800.0);
     let lookat = vec3!(278.0, 278.0, 0.0);
@@ -187,7 +193,7 @@ pub fn cornell_box(aspect: f32) -> (World, Camera) {
         t1,
     );
 
-    (world, cam)
+    (world, lights, cam)
 }
 
 /// A scene with a perlin turbulence sphere on a perlin turbulence ground, with
