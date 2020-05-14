@@ -142,12 +142,17 @@ pub fn render(
                 );
             }
 
+            // Replace NaN components with zero.
+            let mut r = if color[R].is_nan() { 0.0 } else { color[R] };
+            let mut g = if color[G].is_nan() { 0.0 } else { color[G] };
+            let mut b = if color[B].is_nan() { 0.0 } else { color[B] };
+
             // Divide the color total by the number of samples and gamma-correct
             // for a gamma value of 2.0.
             let scale = 1.0 / (samples_per_pixel as f32);
-            let r = (scale * color[R]).sqrt();
-            let g = (scale * color[G]).sqrt();
-            let b = (scale * color[B]).sqrt();
+            r = (scale * r).sqrt();
+            g = (scale * g).sqrt();
+            b = (scale * b).sqrt();
 
             let ir = (256.0 * clamp(r, 0.0, 0.999)) as u32;
             let ig = (256.0 * clamp(g, 0.0, 0.999)) as u32;
