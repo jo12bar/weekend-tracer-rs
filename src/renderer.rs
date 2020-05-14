@@ -48,9 +48,19 @@ fn ray_color<R: Rng + ?Sized>(
             mut pdf,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
-            let cosine_pdf = PDF::cosine(hit_record.normal);
-            scattered = Ray::new(hit_record.hit_point, cosine_pdf.generate(rng), ray.time);
-            pdf = cosine_pdf.value(&scattered.direction);
+            let light_shape = Box::new(crate::hittable::aa_rect::XZRect::new(
+                213.0,
+                343.0,
+                227.0,
+                332.0,
+                554.0,
+                crate::material::Material::lambertian(vec3!().into()),
+            ));
+
+            let hittable_pdf = PDF::hittable(light_shape, hit_record.hit_point);
+            // let cosine_pdf = PDF::cosine(hit_record.normal);
+            scattered = Ray::new(hit_record.hit_point, hittable_pdf.generate(rng), ray.time);
+            pdf = hittable_pdf.value(&scattered.direction);
 
             emitted
                 + albedo

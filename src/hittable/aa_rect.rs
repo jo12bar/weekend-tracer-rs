@@ -14,6 +14,7 @@ use crate::{
     vec3,
     vec3::{Axis::*, Vec3},
 };
+use rand::prelude::*;
 use std::sync::Arc;
 
 // A rectangle aligned with the X and Y axises.
@@ -80,6 +81,30 @@ impl Hittable for XYRect {
             vec3!(self.x0, self.y0, self.k - 0.0001),
             vec3!(self.x1, self.y1, self.k + 0.0001),
         ))
+    }
+
+    fn pdf_value(&self, origin: &Vec3, v: &Vec3) -> f32 {
+        if let Some(rec) = self.hit(&Ray::new(*origin, *v, 0.0), 0.001, std::f32::MAX) {
+            let area = (self.x1 - self.x0) * (self.y1 - self.y0);
+            let distance_squared = rec.t * rec.t * v.length_squared();
+            let cosine = (v.dot(&rec.normal) / v.length()).abs();
+
+            distance_squared / (cosine * area)
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        // Not ideal. Can't get around weird trait object stuff to just pass
+        // down rng.
+        let mut rng = thread_rng();
+        let random_point = vec3!(
+            rng.gen_range(self.x0, self.x1),
+            rng.gen_range(self.y0, self.y1),
+            self.k
+        );
+        random_point - *origin
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {
@@ -153,6 +178,30 @@ impl Hittable for XZRect {
         ))
     }
 
+    fn pdf_value(&self, origin: &Vec3, v: &Vec3) -> f32 {
+        if let Some(rec) = self.hit(&Ray::new(*origin, *v, 0.0), 0.001, std::f32::MAX) {
+            let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+            let distance_squared = rec.t * rec.t * v.length_squared();
+            let cosine = (v.dot(&rec.normal) / v.length()).abs();
+
+            distance_squared / (cosine * area)
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        // Not ideal. Can't get around weird trait object stuff to just pass
+        // down rng.
+        let mut rng = thread_rng();
+        let random_point = vec3!(
+            rng.gen_range(self.x0, self.x1),
+            self.k,
+            rng.gen_range(self.z0, self.z1)
+        );
+        random_point - *origin
+    }
+
     fn box_clone(&self) -> Box<dyn Hittable> {
         Box::new(self.clone())
     }
@@ -222,6 +271,30 @@ impl Hittable for YZRect {
             vec3!(self.k - 0.0001, self.y0, self.z0),
             vec3!(self.k + 0.0001, self.y1, self.z1),
         ))
+    }
+
+    fn pdf_value(&self, origin: &Vec3, v: &Vec3) -> f32 {
+        if let Some(rec) = self.hit(&Ray::new(*origin, *v, 0.0), 0.001, std::f32::MAX) {
+            let area = (self.z1 - self.z0) * (self.y1 - self.y0);
+            let distance_squared = rec.t * rec.t * v.length_squared();
+            let cosine = (v.dot(&rec.normal) / v.length()).abs();
+
+            distance_squared / (cosine * area)
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        // Not ideal. Can't get around weird trait object stuff to just pass
+        // down rng.
+        let mut rng = thread_rng();
+        let random_point = vec3!(
+            self.k,
+            rng.gen_range(self.y0, self.y1),
+            rng.gen_range(self.z0, self.z1),
+        );
+        random_point - *origin
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {

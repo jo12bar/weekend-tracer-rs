@@ -123,6 +123,16 @@ pub trait Hittable: Send + Sync + core::fmt::Debug {
     fn rotate(&self, axis: Axis, angle: f32) -> rotate::Rotate {
         rotate::Rotate::new(self.box_clone(), axis, angle)
     }
+
+    /// Get a value of the hittable's PDF given some origin and some vector.
+    fn pdf_value(&self, _origin: &Vec3, _v: &Vec3) -> f32 {
+        0.0
+    }
+
+    /// Get a random vector for PDF use.
+    fn random(&self, _origin: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
 }
 
 impl Clone for Box<dyn Hittable> {
