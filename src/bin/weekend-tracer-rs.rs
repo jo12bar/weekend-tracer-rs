@@ -31,13 +31,14 @@ fn main() {
                  GIF, BMP, TIFF, ICO, and PPM (the binary version) formats are \
                  supported.")
         (@group image_output +multiple =>
-            (@arg OUTPUT_FILE: required_unless[gui compute_pi] "The file to be outputted to.")
+            (@arg OUTPUT_FILE: required_unless[gui compute_pi compute_int_x_squared] "The file to be outputted to.")
             (@arg ppm: -p --ppm "Output to an ASCII PPM file (e.g. test.ppm, image.ppm, etc...).")
         )
         (@arg dimensions: -d --dimensions <WIDTH> <HEIGHT> !required "Set the dimensions for the render. 300x300 by default.")
         (@arg samples: -s --samples <SAMPLES_PER_PIXEL> !required "Sets the number of samples to be taken per pixel.")
         (@arg reflections: -r --max_reflection_depth <DEPTH> !required "Sets the maximum reflection depth.")
-        (@arg compute_pi: --compute_pi conflicts_with[dimensions samples reflections image_output gui] "Computes pi (because why not?).")
+        (@arg compute_pi: --compute_pi conflicts_with[dimensions samples reflections image_output gui compute_int_x_squared] "Computes pi (because why not?).")
+        (@arg compute_int_x_squared: --compute_int_x_squared conflicts_with[dimensions samples reflections image_output gui compute_pi] "Computes the integral of x^2 between x=0 and x=2.")
     );
 
     #[cfg(feature = "gui-support")]
@@ -55,6 +56,10 @@ fn main() {
 
     if matches.is_present("compute_pi") {
         compute_pi();
+    }
+
+    if matches.is_present("compute_int_x_squared") {
+        compute_int_x_squared();
     }
 
     let dimensions = if let Some(v) = matches.values_of("dimensions") {
@@ -290,6 +295,35 @@ fn compute_pi() -> ! {
         Stratified estimate of Pi = {:.12}",
         4.0 * (inside_circle as f64) / n,
         4.0 * (inside_circle_stratified as f64) / n,
+    );
+
+    std::process::exit(0)
+}
+
+/// Computes the integral of x^2 between x=0.0 and x=2.0.
+fn compute_int_x_squared() -> ! {
+    use rand::prelude::*;
+
+    let mut rng = thread_rng();
+
+    #[inline]
+    fn pdf(_x: f64) -> f64 {
+        0.5
+    }
+
+    let n = 1_000_000;
+    let mut sum = 0.0;
+
+    for _ in 0..n {
+        let x = rng.gen_range(0.0_f64, 2.0_f64).sqrt();
+        sum += x * x / pdf(x);
+    }
+
+    println!(
+        "    2
+I = ∫ x^2 dx ≈ {:.12}
+    0",
+        sum / (n as f64),
     );
 
     std::process::exit(0)
