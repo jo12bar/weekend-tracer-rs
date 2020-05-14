@@ -2,6 +2,7 @@ use crate::bvh::BVH;
 use crate::camera::Camera;
 use crate::hittable::Hittable;
 use crate::material::Scatter;
+use crate::pdf::PDF;
 use crate::ray::Ray;
 use crate::util::clamp;
 use crate::vec3;
@@ -47,31 +48,9 @@ fn ray_color<R: Rng + ?Sized>(
             mut pdf,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
-            // Random point on light:
-            let on_light = vec3!(
-                rng.gen_range(213.0, 343.0),
-                554.0,
-                rng.gen_range(227.0, 332.0)
-            );
-            // Vector pointing to random direction on light from hit point:
-            let mut to_light = on_light - hit_record.hit_point;
-            let distance_squared = to_light.length_squared();
-            to_light = to_light.unit_vector();
-
-            if to_light.dot(&hit_record.normal) < 0.0 {
-                return emitted;
-            }
-
-            // Area of the light:
-            let light_area = ((343 - 213) * (332 - 227)) as f32;
-            let light_cosine = to_light[crate::vec3::Axis::Y].abs();
-
-            if light_cosine < 0.000_001 {
-                return emitted;
-            }
-
-            pdf = distance_squared / (light_cosine * light_area);
-            scattered = Ray::new(hit_record.hit_point, to_light, ray.time);
+            let cosine_pdf = PDF::cosine(hit_record.normal);
+            scattered = Ray::new(hit_record.hit_point, cosine_pdf.generate(rng), ray.time);
+            pdf = cosine_pdf.value(&scattered.direction);
 
             emitted
                 + albedo
