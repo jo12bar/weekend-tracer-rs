@@ -31,12 +31,13 @@ fn main() {
                  GIF, BMP, TIFF, ICO, and PPM (the binary version) formats are \
                  supported.")
         (@group image_output +multiple =>
-            (@arg OUTPUT_FILE: required_unless[gui] "The file to be outputted to.")
+            (@arg OUTPUT_FILE: required_unless[gui compute_pi] "The file to be outputted to.")
             (@arg ppm: -p --ppm "Output to an ASCII PPM file (e.g. test.ppm, image.ppm, etc...).")
         )
         (@arg dimensions: -d --dimensions <WIDTH> <HEIGHT> !required "Set the dimensions for the render. 300x300 by default.")
         (@arg samples: -s --samples <SAMPLES_PER_PIXEL> !required "Sets the number of samples to be taken per pixel.")
         (@arg reflections: -r --max_reflection_depth <DEPTH> !required "Sets the maximum reflection depth.")
+        (@arg compute_pi: --compute_pi conflicts_with[dimensions samples reflections image_output gui] "Computes pi (because why not?).")
     );
 
     #[cfg(feature = "gui-support")]
@@ -51,6 +52,11 @@ fn main() {
     }
 
     let matches = app.get_matches();
+
+    if matches.is_present("compute_pi") {
+        compute_pi();
+        std::process::exit(0);
+    }
 
     let dimensions = if let Some(v) = matches.values_of("dimensions") {
         v.map(str::parse::<usize>)
@@ -248,4 +254,27 @@ fn image_output(
         image::ColorType::Rgb8,
     )
     .unwrap();
+}
+
+/// Compute pi (for reasons)
+fn compute_pi() {
+    use rand::prelude::*;
+
+    let n = 1000;
+    let mut inside_circle = 0;
+    let mut rng = thread_rng();
+
+    for _ in 0..n {
+        let x: f64 = rng.gen_range(-1.0, 1.0);
+        let y: f64 = rng.gen_range(-1.0, 1.0);
+
+        if x * x + y * y < 1.0 {
+            inside_circle += 1;
+        }
+    }
+
+    println!(
+        "Estimate of Pi = {:.12}",
+        4.0 * (inside_circle as f64) / (n as f64)
+    );
 }
