@@ -55,7 +55,6 @@ fn main() {
 
     if matches.is_present("compute_pi") {
         compute_pi();
-        std::process::exit(0);
     }
 
     let dimensions = if let Some(v) = matches.values_of("dimensions") {
@@ -257,24 +256,27 @@ fn image_output(
 }
 
 /// Compute pi (for reasons)
-fn compute_pi() {
+fn compute_pi() -> ! {
     use rand::prelude::*;
 
-    let n = 1000;
+    let mut runs = 0;
     let mut inside_circle = 0;
     let mut rng = thread_rng();
 
-    for _ in 0..n {
+    loop {
+        runs += 1;
         let x: f64 = rng.gen_range(-1.0, 1.0);
         let y: f64 = rng.gen_range(-1.0, 1.0);
 
         if x * x + y * y < 1.0 {
             inside_circle += 1;
         }
-    }
 
-    println!(
-        "Estimate of Pi = {:.12}",
-        4.0 * (inside_circle as f64) / (n as f64)
-    );
+        if runs % 100_000 == 0 {
+            println!(
+                "Estimate of Pi = {:.12}",
+                4.0 * (inside_circle as f64) / (runs as f64)
+            );
+        }
+    }
 }
