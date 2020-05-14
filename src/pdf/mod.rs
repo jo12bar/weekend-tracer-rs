@@ -6,6 +6,7 @@ pub mod mixture_pdf;
 
 use crate::{hittable::Hittable, vec3::Vec3};
 use rand::prelude::*;
+use std::sync::Arc;
 
 /// A probability density function. Supports generating either floats or vectors.
 #[derive(Clone, Debug)]
@@ -22,7 +23,7 @@ impl PDF {
     }
 
     /// Create a new PDF for some `Hittable` object.
-    pub fn hittable(obj: Box<dyn Hittable>, origin: Vec3) -> Self {
+    pub fn hittable(obj: Arc<dyn Hittable>, origin: Vec3) -> Self {
         Self::Hittable(hittable_pdf::HittablePDF::new(obj, origin))
     }
 

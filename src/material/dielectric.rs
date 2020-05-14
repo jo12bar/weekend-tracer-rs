@@ -2,7 +2,7 @@
 
 use crate::{
     hittable::HitRecord,
-    material::Scatter,
+    material::{Scatter, ScatterType},
     ray::Ray,
     vec3,
     vec3::{Channel::*, Vec3},
@@ -76,7 +76,7 @@ impl Dielectric {
 
             // Reflected rays just get scattered with the colour of the object
             // (the albedo) as the attenuation.
-            Scatter::new(self.albedo, scattered)
+            Scatter::new(self.albedo, ScatterType::Specular(scattered))
         } else {
             // Ray must refract.
             let refracted = unit_direction.refract(&rec.normal, etai_over_etat);
@@ -99,7 +99,7 @@ impl Dielectric {
                 absorbance[B].exp(),
             );
 
-            Scatter::new(transparency, scattered)
+            Scatter::new(transparency, ScatterType::Specular(scattered))
         };
 
         Some(scatter)

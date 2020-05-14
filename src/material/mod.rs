@@ -9,6 +9,7 @@ pub mod metal;
 
 use crate::{
     hittable::{HitRecord, UVCoord},
+    pdf::PDF,
     ray::Ray,
     texture::Texture,
     vec3,
@@ -16,24 +17,26 @@ use crate::{
 };
 use rand::Rng;
 
+/// The type of scattering. Either a PDF-based scatter or a pre-calculated
+/// specular ray.
+#[derive(Clone, Debug)]
+pub enum ScatterType {
+    Specular(Ray),
+    PDF(PDF),
+}
+
 /// A scattered ray and its attenuation.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Scatter {
-    pub albedo: Vec3,
-    pub scattered: Ray,
-    pub pdf: f32,
+    pub attenuation: Vec3,
+    pub scattered: ScatterType,
 }
 
 impl Scatter {
-    pub fn new(albedo: Vec3, scattered: Ray) -> Self {
-        Self::new_with_pdf(albedo, scattered, 0.0)
-    }
-
-    pub fn new_with_pdf(albedo: Vec3, scattered: Ray, pdf: f32) -> Self {
+    pub fn new(attenuation: Vec3, scattered: ScatterType) -> Self {
         Self {
-            albedo,
+            attenuation,
             scattered,
-            pdf,
         }
     }
 }

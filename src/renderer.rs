@@ -1,7 +1,7 @@
 use crate::bvh::BVH;
 use crate::camera::Camera;
 use crate::hittable::Hittable;
-use crate::material::Scatter;
+use crate::material::{Scatter, ScatterType};
 use crate::pdf::PDF;
 use crate::ray::Ray;
 use crate::util::clamp;
@@ -10,6 +10,7 @@ use crate::vec3::{Channel::*, Vec3};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
+use std::sync::Arc;
 
 /// A pixel. Components are ordered `R`, `G`, `B`. Each component should range
 /// from 0-255.
@@ -20,6 +21,7 @@ fn ray_color<R: Rng + ?Sized>(
     ray: &Ray,
     background_color: &Vec3,
     bvh: &BVH,
+    lights: Arc<dyn Hittable>,
     reflection_depth: usize,
 ) -> Vec3 {
     if reflection_depth == 0 {
@@ -43,34 +45,47 @@ fn ray_color<R: Rng + ?Sized>(
                 .emitted(&hit_record, hit_record.uv, &hit_record.hit_point);
 
         if let Some(Scatter {
-            albedo,
-            mut scattered,
-            mut pdf,
+            attenuation,
+            scattered,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
-            let light_shape = Box::new(crate::hittable::aa_rect::XZRect::new(
-                213.0,
-                343.0,
-                227.0,
-                332.0,
-                554.0,
-                crate::material::Material::lambertian(vec3!().into()),
-            ));
+            match scattered {
+                ScatterType::Specular(specular_ray) => {
+                    attenuation
+                        * ray_color(
+                            rng,
+                            &specular_ray,
+                            background_color,
+                            bvh,
+                            lights,
+                            reflection_depth - 1,
+                        )
+                }
 
-            let hittable_pdf = PDF::hittable(light_shape, hit_record.hit_point);
-            let cosine_pdf = PDF::cosine(hit_record.normal);
-            let mixture_pdf = PDF::mixture(&hittable_pdf, &cosine_pdf);
+                ScatterType::PDF(scatter_pdf) => {
+                    let light_pdf = PDF::hittable(lights.clone(), hit_record.hit_point);
+                    let mixture_pdf = PDF::mixture(&light_pdf, &scatter_pdf);
 
-            scattered = Ray::new(hit_record.hit_point, mixture_pdf.generate(rng), ray.time);
-            pdf = mixture_pdf.value(&scattered.direction);
+                    let scattered =
+                        Ray::new(hit_record.hit_point, mixture_pdf.generate(rng), ray.time);
+                    let pdf_val = mixture_pdf.value(&scattered.direction);
 
-            emitted
-                + albedo
-                    * hit_record
-                        .material
-                        .scattering_pdf(rng, ray, &hit_record, &scattered)
-                    * ray_color(rng, &scattered, background_color, bvh, reflection_depth - 1)
-                    / pdf
+                    emitted
+                        + attenuation
+                            * hit_record
+                                .material
+                                .scattering_pdf(rng, ray, &hit_record, &scattered)
+                            * ray_color(
+                                rng,
+                                &scattered,
+                                background_color,
+                                bvh,
+                                lights,
+                                reflection_depth - 1,
+                            )
+                            / pdf_val
+                }
+            }
         } else {
             emitted
         }
@@ -83,12 +98,14 @@ fn ray_color<R: Rng + ?Sized>(
 /// Render the scene. Outputs a vector of (r, g, b) integer triples, one for
 /// each pixel, which can range from 0 to 255.
 #[allow(clippy::many_single_char_names)]
+#[allow(clippy::too_many_arguments)]
 pub fn render(
     width: usize,
     height: usize,
     samples_per_pixel: usize,
     max_reflection_depth: usize,
     bvh: BVH,
+    lights: Arc<dyn Hittable>,
     camera: Camera,
     background_color: Vec3,
 ) -> Vec<Pixel> {
@@ -115,7 +132,14 @@ pub fn render(
                 let v = ((j as f32) + rng.gen::<f32>()) / (height as f32);
 
                 let ray = camera.get_ray(rng, u, v);
-                color += ray_color(rng, &ray, &background_color, &bvh, max_reflection_depth);
+                color += ray_color(
+                    rng,
+                    &ray,
+                    &background_color,
+                    &bvh,
+                    lights.clone(),
+                    max_reflection_depth,
+                );
             }
 
             // Divide the color total by the number of samples and gamma-correct

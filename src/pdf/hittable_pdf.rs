@@ -2,17 +2,18 @@
 
 use crate::{hittable::Hittable, vec3::Vec3};
 use rand::prelude::*;
+use std::sync::Arc;
 
 /// A PDF that will bias vectors to point towards some `Hittable` object.
 #[derive(Debug, Clone)]
 pub struct HittablePDF {
     pub origin: Vec3,
-    pub obj: Box<dyn Hittable>,
+    pub obj: Arc<dyn Hittable>,
 }
 
 impl HittablePDF {
     /// Create a new `HittablePDF`.
-    pub fn new(obj: Box<dyn Hittable>, origin: Vec3) -> Self {
+    pub fn new(obj: Arc<dyn Hittable>, origin: Vec3) -> Self {
         Self { obj, origin }
     }
 

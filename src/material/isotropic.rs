@@ -1,6 +1,12 @@
 //! An isotropic scattering function, to be used with a volume.
 
-use crate::{hittable::HitRecord, material::Scatter, ray::Ray, texture::Texture, vec3::Vec3};
+use crate::{
+    hittable::HitRecord,
+    material::{Scatter, ScatterType},
+    ray::Ray,
+    texture::Texture,
+    vec3::Vec3,
+};
 use rand::prelude::*;
 
 /// An isotropic scattering function. Rays have a chance of scattering, and will
@@ -26,6 +32,6 @@ impl Isotropic {
     ) -> Option<Scatter> {
         let scattered = Ray::new(rec.hit_point, Vec3::random_in_unit_sphere(rng), ray.time);
         let attenutation = self.albedo.0(rec.uv, &rec.hit_point);
-        Some(Scatter::new(attenutation, scattered))
+        Some(Scatter::new(attenutation, ScatterType::Specular(scattered)))
     }
 }

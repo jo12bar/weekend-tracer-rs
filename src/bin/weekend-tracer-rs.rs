@@ -1,9 +1,17 @@
 use clap::{clap_app, crate_version};
+use std::sync::Arc;
 
 #[cfg(feature = "gui-support")]
 use minifb::{Key, Window, WindowOptions};
 
-use weekend_tracer_rs::{bvh::BVH, camera::Camera, renderer, scenes, vec3, vec3::Vec3};
+use weekend_tracer_rs::{
+    bvh::BVH,
+    camera::Camera,
+    hittable::{aa_rect::XZRect, Hittable},
+    material::Material,
+    renderer, scenes, vec3,
+    vec3::Vec3,
+};
 
 // Some defaults
 #[cfg(debug_assertions)]
@@ -101,6 +109,15 @@ fn main() {
     let (world, camera) = scenes::cornell_box(aspect_ratio);
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
+    let lights = Arc::new(XZRect::new(
+        213.0,
+        343.0,
+        227.0,
+        332.0,
+        554.0,
+        Material::lambertian(vec3!().into()),
+    ));
+
     // let lookfrom = vec3!(478.0, 278.0, -600.0);
     // let lookat = vec3!(278.0, 278.0, 0.0);
     // let vup = vec3!(0.0, 1.0);
@@ -124,6 +141,7 @@ fn main() {
         #[cfg(feature = "gui-support")]
         gui_output(
             bvh,
+            lights,
             camera,
             width,
             height,
@@ -139,6 +157,7 @@ fn main() {
             ppm_output(
                 output_file,
                 bvh,
+                lights,
                 camera,
                 width,
                 height,
@@ -150,6 +169,7 @@ fn main() {
             image_output(
                 output_file,
                 bvh,
+                lights,
                 camera,
                 width,
                 height,
@@ -164,6 +184,7 @@ fn main() {
 #[cfg(feature = "gui-support")]
 fn gui_output(
     bvh: BVH,
+    lights: Arc<dyn Hittable>,
     camera: Camera,
     width: usize,
     height: usize,
@@ -176,6 +197,7 @@ fn gui_output(
         samples_per_pixel,
         max_reflection_depth,
         bvh,
+        lights,
         camera,
         BACKGROUND_COLOR,
     ))
@@ -198,9 +220,11 @@ fn gui_output(
 }
 
 /// Render to an ASCII PPM `.ppm` file.
+#[allow(clippy::too_many_arguments)]
 fn ppm_output(
     filename: &str,
     bvh: BVH,
+    lights: Arc<dyn Hittable>,
     camera: Camera,
     width: usize,
     height: usize,
@@ -213,6 +237,7 @@ fn ppm_output(
         samples_per_pixel,
         max_reflection_depth,
         bvh,
+        lights,
         camera,
         BACKGROUND_COLOR,
     )
@@ -227,9 +252,11 @@ fn ppm_output(
 
 /// Render to some arbritrary image file type. Whatever the `image` crate
 /// supports.
+#[allow(clippy::too_many_arguments)]
 fn image_output(
     filename: &str,
     bvh: BVH,
+    lights: Arc<dyn Hittable>,
     camera: Camera,
     width: usize,
     height: usize,
@@ -242,6 +269,7 @@ fn image_output(
         samples_per_pixel,
         max_reflection_depth,
         bvh,
+        lights,
         camera,
         BACKGROUND_COLOR,
     )

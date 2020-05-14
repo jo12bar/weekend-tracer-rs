@@ -1,6 +1,11 @@
 //! A metallic, reflective material.
 
-use crate::{hittable::HitRecord, material::Scatter, ray::Ray, vec3::Vec3};
+use crate::{
+    hittable::HitRecord,
+    material::{Scatter, ScatterType},
+    ray::Ray,
+    vec3::Vec3,
+};
 use rand::Rng;
 
 /// A basic, metallic, reflective material. Attenuation can be changed by
@@ -26,15 +31,18 @@ impl Metal {
         rec: &HitRecord,
     ) -> Option<Scatter> {
         let reflected = ray_in.direction.unit_vector().reflect(&rec.normal);
-        let scattered = Ray::new(
+        let specular_ray = Ray::new(
             rec.hit_point,
             reflected + self.fuzz * Vec3::random_in_unit_sphere(rng),
             ray_in.time,
         );
         let attenuation = self.albedo;
 
-        if scattered.direction.dot(&rec.normal) > 0.0 {
-            Some(Scatter::new(attenuation, scattered))
+        if specular_ray.direction.dot(&rec.normal) > 0.0 {
+            Some(Scatter::new(
+                attenuation,
+                ScatterType::Specular(specular_ray),
+            ))
         } else {
             None
         }
