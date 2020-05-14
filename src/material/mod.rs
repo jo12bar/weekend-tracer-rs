@@ -120,9 +120,9 @@ impl Material {
 
     /// Emits light. By default, will just return `Vec3(0.0, 0.0, 0.0)`, as most
     /// materials don't emit light. Can be overridden, however.
-    pub fn emitted(&self, uv_coord: UVCoord, point: &Vec3) -> Vec3 {
+    pub fn emitted(&self, rec: &HitRecord, uv_coord: UVCoord, point: &Vec3) -> Vec3 {
         match self {
-            Material::DiffuseLight(dl) => dl.emitted(uv_coord, point),
+            Material::DiffuseLight(dl) => dl.emitted(rec, uv_coord, point),
             _ => vec3!(0.0),
         }
     }

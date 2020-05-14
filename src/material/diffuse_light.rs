@@ -4,6 +4,7 @@ use crate::{
     material::Scatter,
     ray::Ray,
     texture::Texture,
+    vec3,
     vec3::Vec3,
 };
 use rand::prelude::*;
@@ -30,7 +31,11 @@ impl DiffuseLight {
         None
     }
 
-    pub fn emitted(&self, uv_coord: UVCoord, point: &Vec3) -> Vec3 {
-        self.emit.0(uv_coord, point)
+    pub fn emitted(&self, rec: &HitRecord, uv_coord: UVCoord, point: &Vec3) -> Vec3 {
+        if rec.front_face {
+            self.emit.0(uv_coord, point)
+        } else {
+            vec3!()
+        }
     }
 }

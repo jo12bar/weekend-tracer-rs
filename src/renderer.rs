@@ -36,16 +36,43 @@ fn ray_color<R: Rng + ?Sized>(
         //
         // We also add on some emitted light if the ray hit some emitting material.
 
-        let emitted = hit_record
-            .material
-            .emitted(hit_record.uv, &hit_record.hit_point);
+        let emitted =
+            hit_record
+                .material
+                .emitted(&hit_record, hit_record.uv, &hit_record.hit_point);
 
         if let Some(Scatter {
             albedo,
-            scattered,
-            pdf,
+            mut scattered,
+            mut pdf,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
+            // Random point on light:
+            let on_light = vec3!(
+                rng.gen_range(213.0, 343.0),
+                554.0,
+                rng.gen_range(227.0, 332.0)
+            );
+            // Vector pointing to random direction on light from hit point:
+            let mut to_light = on_light - hit_record.hit_point;
+            let distance_squared = to_light.length_squared();
+            to_light = to_light.unit_vector();
+
+            if to_light.dot(&hit_record.normal) < 0.0 {
+                return emitted;
+            }
+
+            // Area of the light:
+            let light_area = ((343 - 213) * (332 - 227)) as f32;
+            let light_cosine = to_light[crate::vec3::Axis::Y].abs();
+
+            if light_cosine < 0.000_001 {
+                return emitted;
+            }
+
+            pdf = distance_squared / (light_cosine * light_area);
+            scattered = Ray::new(hit_record.hit_point, to_light, ray.time);
+
             emitted
                 + albedo
                     * hit_record

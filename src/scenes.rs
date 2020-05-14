@@ -157,7 +157,7 @@ pub fn cornell_box(aspect: f32) -> (World, Camera) {
         XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
         XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
-        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
+        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light).flip_face(),
         // Blocks:
         Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
             .rotate(Y, 15.0)
