@@ -24,7 +24,8 @@ impl Lambertian {
         let target = rec.normal + Vec3::random_unit_vector(rng);
         let scattered = Ray::new(rec.hit_point, target.unit_vector(), ray_in.time);
         let albedo = self.albedo.0(rec.uv, &rec.hit_point);
-        let pdf = rec.normal.dot(&scattered.direction) / std::f32::consts::PI;
+        // let pdf = rec.normal.dot(&scattered.direction) / std::f32::consts::PI;
+        let pdf = 0.5 / std::f32::consts::PI;
 
         Some(Scatter::new_with_pdf(albedo, scattered, pdf))
     }
