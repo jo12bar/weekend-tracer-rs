@@ -79,6 +79,7 @@ fn main() {
 
     let width = dimensions[0];
     let height = dimensions[1];
+    let aspect_ratio = (width as f32) / (height as f32);
 
     let samples_per_pixel = matches
         .value_of("samples")
@@ -97,28 +98,27 @@ fn main() {
         .parse::<usize>()
         .unwrap_or_else(|e| panic!("Could not parse <DEPTH> into a positive integer!\n{}", e));
 
-    let world = scenes::tracer_the_next_week_final_scene();
+    let (world, camera) = scenes::cornell_box(aspect_ratio);
     let bvh = BVH::new(world.objects, 0.0, 1.0);
 
-    let lookfrom = vec3!(478.0, 278.0, -600.0);
-    let lookat = vec3!(278.0, 278.0, 0.0);
-    let vup = vec3!(0.0, 1.0);
-    let aspect_ratio = (width as f32) / (height as f32);
-    let dist_to_focus = (vec3!(260.0, 150.0, 45.0) - lookfrom).length();
-    let aperture = 0.5;
-    let vfov = 40.0; // degrees
+    // let lookfrom = vec3!(478.0, 278.0, -600.0);
+    // let lookat = vec3!(278.0, 278.0, 0.0);
+    // let vup = vec3!(0.0, 1.0);
+    // let dist_to_focus = (vec3!(260.0, 150.0, 45.0) - lookfrom).length();
+    // let aperture = 0.5;
+    // let vfov = 40.0; // degrees
 
-    let camera = Camera::new(
-        lookfrom,
-        lookat,
-        vup,
-        vfov,
-        aspect_ratio,
-        aperture,
-        dist_to_focus,
-        0.0,
-        1.0,
-    );
+    // let camera = Camera::new(
+    //     lookfrom,
+    //     lookat,
+    //     vup,
+    //     vfov,
+    //     aspect_ratio,
+    //     aperture,
+    //     dist_to_focus,
+    //     0.0,
+    //     1.0,
+    // );
 
     if matches.is_present("gui") {
         #[cfg(feature = "gui-support")]

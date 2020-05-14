@@ -1,5 +1,6 @@
 //! Some pre-made scenes for your use.
 use crate::{
+    camera::Camera,
     create_world,
     hittable::{
         aa_rect::{XYRect, XZRect, YZRect},
@@ -141,14 +142,14 @@ pub fn tracer_the_next_week_final_scene() -> World {
 
 /// A "Cornell Box" scene. Introduced in 1984, and is used to model the
 /// interaction of light between diffuse surfaces.
-pub fn cornell_box() -> World {
+pub fn cornell_box(aspect: f32) -> (World, Camera) {
     let red = Material::lambertian(vec3!(0.65, 0.05, 0.05).into());
     let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
     let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
 
     let light = Material::diffuse_light(Vec3::from(7.0).into());
 
-    create_world!(
+    let world = create_world!(
         // Five walls:
         YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, green), // left
         YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, red),     // right
@@ -156,27 +157,38 @@ pub fn cornell_box() -> World {
         XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // ceiling
         XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, white.clone()), // back
         // Light:
-        XZRect::new(113.0, 443.0, 127.0, 432.0, 554.0, light),
-        // Smoke Blocks:
-        ConstantMedium::new(
-            Box::new(
-                Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
-                    .rotate(Y, 15.0)
-                    .translate(vec3!(265.0, 0.0, 295.0))
-            ),
-            0.01,
-            vec3!().into(),
-        ),
-        ConstantMedium::new(
-            Box::new(
-                Block::new(vec3!(), Vec3::from(165.0), white)
-                    .rotate(Y, -18.0)
-                    .translate(vec3!(130.0, 0.0, 65.0))
-            ),
-            0.01,
-            Vec3::from(1.0).into()
-        ),
-    )
+        XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light),
+        // Blocks:
+        Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white.clone())
+            .rotate(Y, 15.0)
+            .translate(vec3!(265.0, 0.0, 295.0)),
+        Block::new(vec3!(), Vec3::from(165.0), white)
+            .rotate(Y, -18.0)
+            .translate(vec3!(130.0, 0.0, 65.0))
+    );
+
+    let lookfrom = vec3!(278.0, 278.0, -800.0);
+    let lookat = vec3!(278.0, 278.0, 0.0);
+    let vup = vec3!(0.0, 1.0);
+    let dist_to_focus = 10.0;
+    let aperture = 0.0;
+    let vfov = 40.0;
+    let t0 = 0.0;
+    let t1 = 1.0;
+
+    let cam = Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        vfov,
+        aspect,
+        aperture,
+        dist_to_focus,
+        t0,
+        t1,
+    );
+
+    (world, cam)
 }
 
 /// A scene with a perlin turbulence sphere on a perlin turbulence ground, with
