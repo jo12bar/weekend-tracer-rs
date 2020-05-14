@@ -58,9 +58,11 @@ fn ray_color<R: Rng + ?Sized>(
             ));
 
             let hittable_pdf = PDF::hittable(light_shape, hit_record.hit_point);
-            // let cosine_pdf = PDF::cosine(hit_record.normal);
-            scattered = Ray::new(hit_record.hit_point, hittable_pdf.generate(rng), ray.time);
-            pdf = hittable_pdf.value(&scattered.direction);
+            let cosine_pdf = PDF::cosine(hit_record.normal);
+            let mixture_pdf = PDF::mixture(&hittable_pdf, &cosine_pdf);
+
+            scattered = Ray::new(hit_record.hit_point, mixture_pdf.generate(rng), ray.time);
+            pdf = mixture_pdf.value(&scattered.direction);
 
             emitted
                 + albedo
