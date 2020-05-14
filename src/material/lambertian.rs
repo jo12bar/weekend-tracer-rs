@@ -21,10 +21,26 @@ impl Lambertian {
         ray_in: &Ray,
         rec: &HitRecord,
     ) -> Option<Scatter> {
-        let scatter_direction = rec.normal + Vec3::random_unit_vector(rng);
-        let scattered = Ray::new(rec.hit_point, scatter_direction, ray_in.time);
-        let attenuation = self.albedo.0(rec.uv, &rec.hit_point);
+        let target = rec.normal + Vec3::random_unit_vector(rng);
+        let scattered = Ray::new(rec.hit_point, target.unit_vector(), ray_in.time);
+        let albedo = self.albedo.0(rec.uv, &rec.hit_point);
+        let pdf = rec.normal.dot(&scattered.direction) / std::f32::consts::PI;
 
-        Some(Scatter::new(attenuation, scattered))
+        Some(Scatter::new_with_pdf(albedo, scattered, pdf))
+    }
+
+    pub fn scattering_pdf<R: Rng + ?Sized>(
+        &self,
+        _rng: &mut R,
+        _ray_in: &Ray,
+        rec: &HitRecord,
+        scattered: &Ray,
+    ) -> f32 {
+        let cosine = rec.normal.dot(&scattered.direction.unit_vector());
+        if cosine < 0.0 {
+            0.0
+        } else {
+            cosine / std::f32::consts::PI
+        }
     }
 }

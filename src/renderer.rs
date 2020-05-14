@@ -41,13 +41,18 @@ fn ray_color<R: Rng + ?Sized>(
             .emitted(hit_record.uv, &hit_record.hit_point);
 
         if let Some(Scatter {
-            attenuation,
+            albedo,
             scattered,
+            pdf,
         }) = hit_record.material.scatter(rng, ray, &hit_record)
         {
             emitted
-                + attenuation
+                + albedo
+                    * hit_record
+                        .material
+                        .scattering_pdf(rng, ray, &hit_record, &scattered)
                     * ray_color(rng, &scattered, background_color, bvh, reflection_depth - 1)
+                    / pdf
         } else {
             emitted
         }

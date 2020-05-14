@@ -19,15 +19,21 @@ use rand::Rng;
 /// A scattered ray and its attenuation.
 #[derive(Copy, Clone, Debug)]
 pub struct Scatter {
-    pub attenuation: Vec3,
+    pub albedo: Vec3,
     pub scattered: Ray,
+    pub pdf: f32,
 }
 
 impl Scatter {
-    pub fn new(attenuation: Vec3, scattered: Ray) -> Self {
+    pub fn new(albedo: Vec3, scattered: Ray) -> Self {
+        Self::new_with_pdf(albedo, scattered, 0.0)
+    }
+
+    pub fn new_with_pdf(albedo: Vec3, scattered: Ray, pdf: f32) -> Self {
         Self {
-            attenuation,
+            albedo,
             scattered,
+            pdf,
         }
     }
 }
@@ -94,6 +100,21 @@ impl Material {
             Material::Dielectric(d) => d.scatter(rng, ray, rec),
             Material::DiffuseLight(dl) => dl.scatter(rng, ray, rec),
             Material::Isotropic(i) => i.scatter(rng, ray, rec),
+        }
+    }
+
+    /// Samples a PDF for some ray, its scattered counterpart, and a hit record.
+    /// Allows for things like biasing rays towards light sources.
+    pub fn scattering_pdf<R: Rng + ?Sized>(
+        &self,
+        rng: &mut R,
+        ray_in: &Ray,
+        rec: &HitRecord,
+        scattered: &Ray,
+    ) -> f32 {
+        match rec.material.as_ref() {
+            Material::Lambertian(l) => l.scattering_pdf(rng, ray_in, rec, scattered),
+            _ => 0.0,
         }
     }
 
