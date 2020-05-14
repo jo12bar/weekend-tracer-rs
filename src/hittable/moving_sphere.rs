@@ -58,7 +58,7 @@ impl MovingSphere {
     ///     0.0,
     ///     2.0,
     ///     0.5,
-    ///     Material::dielectric(1.5),
+    ///     Material::dielectric(1.5, 0.0),
     /// );
     ///
     /// assert_eq!(sphere.center(-1.0), vec3!(-2.0, -2.0, -2.0));

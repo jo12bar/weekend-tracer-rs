@@ -1,6 +1,8 @@
 //! A Lambertian diffuse material.
 
-use crate::{hittable::HitRecord, material::Scatter, ray::Ray, texture::Texture, vec3::Vec3};
+use crate::{
+    hittable::HitRecord, material::Scatter, onb::ONB, ray::Ray, texture::Texture, vec3::Vec3,
+};
 use rand::Rng;
 
 /// A Lambertian diffuse material. Attenuation is adjustable via the `abedo`
@@ -21,11 +23,11 @@ impl Lambertian {
         ray_in: &Ray,
         rec: &HitRecord,
     ) -> Option<Scatter> {
-        let target = rec.normal + Vec3::random_unit_vector(rng);
-        let scattered = Ray::new(rec.hit_point, target.unit_vector(), ray_in.time);
+        let uvw = ONB::build_from_w(rec.normal);
+        let direction = uvw.local(&Vec3::random_cosine_direction(rng));
+        let scattered = Ray::new(rec.hit_point, direction.unit_vector(), ray_in.time);
         let albedo = self.albedo.0(rec.uv, &rec.hit_point);
-        // let pdf = rec.normal.dot(&scattered.direction) / std::f32::consts::PI;
-        let pdf = 0.5 / std::f32::consts::PI;
+        let pdf = uvw.w.dot(&scattered.direction) / std::f32::consts::PI;
 
         Some(Scatter::new_with_pdf(albedo, scattered, pdf))
     }

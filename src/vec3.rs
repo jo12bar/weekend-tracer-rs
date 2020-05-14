@@ -253,6 +253,37 @@ impl Vec3 {
         p
     }
 
+    /// Generates a new vector in some random direction by uniformly sampling a
+    /// hemisphere using cosines.
+    ///
+    /// # Usage
+    ///
+    /// ```
+    /// use rand::{Rng, SeedableRng};
+    /// use rand_chacha::ChaCha8Rng;
+    /// use weekend_tracer_rs::vec3::Vec3;
+    ///
+    /// // This is just so we can have a reproducible source of random numbers
+    /// // for testing purposes. You should probably use `rand::thread_rng()`
+    /// // instead.
+    /// let mut rng = ChaCha8Rng::seed_from_u64(10);
+    ///
+    /// let a = Vec3::random_cosine_direction(&mut rng);
+    ///
+    /// assert_eq!(a, Vec3::new(-0.39450094, 0.6357983, 0.6634226));
+    /// ```
+    pub fn random_cosine_direction<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        let r1: f32 = rng.gen();
+        let r2: f32 = rng.gen();
+        let z = (1.0 - r2).sqrt();
+
+        let phi = 2.0 * std::f32::consts::PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+
+        Self(x, y, z)
+    }
+
     /// Returns the length of the vector, squared.
     ///
     /// ```

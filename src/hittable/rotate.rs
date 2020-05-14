@@ -4,18 +4,24 @@
 //!
 //! For rotating counterclockwise (CCW) about the Z axis, we have:
 //!
-//!      x' = x⋅cos(θ) - y⋅sin(θ)
-//!      y' = x⋅sin(θ) + y⋅cos(θ)
+//! ```text
+//! x' = x⋅cos(θ) - y⋅sin(θ)
+//! y' = x⋅sin(θ) + y⋅cos(θ)
+//! ```
 //!
 //! For rotating CCW about the Y axis:
 //!
-//!      x' =  x⋅cos(θ) + z⋅sin(θ)
-//!      z' = -x⋅sin(θ) + z⋅cos(θ)
+//! ```text
+//! x' =  x⋅cos(θ) + z⋅sin(θ)
+//! z' = -x⋅sin(θ) + z⋅cos(θ)
+//! ```
 //!
 //! For rotating CCW about the X axis:
 //!
-//!      y' = y⋅cos(θ) - z⋅sin(θ)
-//!      z' = y⋅sin(θ) + z⋅cos(θ)
+//! ```text
+//! y' = y⋅cos(θ) - z⋅sin(θ)
+//! z' = y⋅sin(θ) + z⋅cos(θ)
+//! ```
 
 use crate::{
     aabb::AABB,
