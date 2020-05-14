@@ -3,9 +3,12 @@
 use crate::aabb::AABB;
 use crate::hittable::{get_sphere_uv, HitRecord, Hittable};
 use crate::material::Material;
+use crate::onb::ONB;
+use crate::pdf::random_to_sphere;
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Vec3;
+use rand::prelude::*;
 use std::sync::Arc;
 
 /// A sphere. Can be hit with rays.
@@ -75,6 +78,32 @@ impl Hittable for Sphere {
             self.center - vec3!(self.radius, self.radius, self.radius),
             self.center + vec3!(self.radius, self.radius, self.radius),
         ))
+    }
+
+    fn pdf_value(&self, origin: &Vec3, v: &Vec3) -> f32 {
+        if self
+            .hit(&Ray::new(*origin, *v, 0.0), 0.001, std::f32::MAX)
+            .is_some()
+        {
+            let cos_theta_max =
+                (1.0 - self.radius * self.radius / (self.center - *origin).length_squared()).sqrt();
+            let solid_angle = 2.0 * std::f32::consts::PI * (1.0 - cos_theta_max);
+
+            1.0 / solid_angle
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        // Not ideal, but eh...
+        let mut rng = thread_rng();
+
+        let direction = self.center - *origin;
+        let distance_squared = direction.length_squared();
+        let uvw = ONB::build_from_w(direction);
+
+        uvw.local(&random_to_sphere(&mut rng, self.radius, distance_squared))
     }
 
     fn box_clone(&self) -> Box<dyn Hittable> {

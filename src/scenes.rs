@@ -146,7 +146,7 @@ pub fn cornell_box(aspect: f32) -> (World, Camera) {
     let red = Material::lambertian(vec3!(0.65, 0.05, 0.05).into());
     let white = Material::lambertian(vec3!(0.73, 0.73, 0.73).into());
     let green = Material::lambertian(vec3!(0.12, 0.45, 0.15).into());
-    let aluminum = Material::metal(vec3!(0.8, 0.85, 0.88), 0.0);
+    let glass = Material::dielectric(1.5, 0.0);
 
     let light = Material::diffuse_light(Vec3::from(7.0).into());
 
@@ -160,12 +160,10 @@ pub fn cornell_box(aspect: f32) -> (World, Camera) {
         // Light:
         XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, light).flip_face(),
         // Blocks:
-        Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), aluminum)
+        Block::new(vec3!(), vec3!(165.0, 330.0, 165.0), white)
             .rotate(Y, 15.0)
             .translate(vec3!(265.0, 0.0, 295.0)),
-        Block::new(vec3!(), Vec3::from(165.0), white)
-            .rotate(Y, -18.0)
-            .translate(vec3!(130.0, 0.0, 65.0))
+        Sphere::new(vec3!(), 90.0, glass).translate(vec3!(190.0, 90.0, 190.0))
     );
 
     let lookfrom = vec3!(278.0, 278.0, -800.0);

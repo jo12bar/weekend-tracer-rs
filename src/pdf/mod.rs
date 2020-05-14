@@ -57,3 +57,17 @@ impl PDF {
         Box::new(self.clone())
     }
 }
+
+/// A utility function for getting a special PDF-ready vector on a sphere.
+pub fn random_to_sphere<R: Rng + ?Sized>(rng: &mut R, radius: f32, distance_squared: f32) -> Vec3 {
+    let r1: f32 = rng.gen();
+    let r2: f32 = rng.gen();
+
+    let z = 1.0 + r2 * ((1.0 - radius * radius / distance_squared).sqrt() - 1.0);
+
+    let phi = 2.0 * std::f32::consts::PI * r1;
+    let x = phi.cos() * (1.0 - z * z).sqrt();
+    let y = phi.sin() * (1.0 - z * z).sqrt();
+
+    Vec3::new(x, y, z)
+}
